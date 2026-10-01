@@ -1,7 +1,6 @@
 /* ==================== TRAIN GAME - MAIN SCRIPT ==================== */
 
 // ==================== GAME STATE ==================== //
-
 const gameState = {
     score: 0,
     lives: 3,
@@ -11,42 +10,38 @@ const gameState = {
     maxStreak: 0,
     currentStreak: 0,
     level: 1,
-    spawnRate: 0.8 // seconds between obstacle spawns
+    spawnRate: 800 // milliseconds between obstacle spawns
 };
 
 // ==================== TRAIN OBJECT ==================== //
-
 const train = {
-    x: 400, // Center of game area
-    y: 550, // Near bottom
+    x: 375,
+    y: 550,
     width: 50,
     height: 35,
-    speed: 6,
+    speed: 7,
     velocityX: 0,
     velocityY: 0,
-    maxX: 750, // Game area width - train width
-    maxY: 550, // Game area height - train height
 
-    // Update train position based on input
     update() {
         this.x += this.velocityX;
         this.y += this.velocityY;
 
-        // Boundary constraints
+        // Keep train within game bounds
         if (this.x < 0) this.x = 0;
-        if (this.x > this.maxX) this.x = this.maxX;
+        if (this.x > 750) this.x = 750;
         if (this.y < 0) this.y = 0;
-        if (this.y > this.maxY) this.y = this.maxY;
+        if (this.y > 550) this.y = 550;
     },
 
-    // Render train on screen
     render() {
         const trainEl = document.getElementById('train');
-        trainEl.style.left = this.x + 'px';
-        trainEl.style.bottom = (600 - this.y - this.height) + 'px';
+        if (trainEl) {
+            trainEl.style.left = this.x + 'px';
+            trainEl.style.top = (600 - this.y - this.height) + 'px';
+        }
     },
 
-    // Reset position to starting point
     reset() {
         this.x = 375;
         this.y = 550;
@@ -55,78 +50,65 @@ const train = {
     }
 };
 
-// ==================== OBSTACLE OBJECT ==================== //
-
+// ==================== OBSTACLE CLASS ==================== //
 class Obstacle {
     constructor(x, y, type = 'rock') {
         this.x = x;
         this.y = y;
         this.width = 40;
         this.height = 40;
-        this.speed = 4 + Math.random() * 2; // Random speed between 4-6
-        this.type = type; // 'rock' or 'tree'
-        this.element = null;
-        this.create();
-    }
-
-    // Create DOM element for obstacle
-    create() {
+        this.speed = 3 + Math.random() * 2;
+        this.type = type;
         this.element = document.createElement('div');
         this.element.className = `obstacle ${this.type}`;
-        this.element.innerHTML = this.type === 'rock' ? '🪨' : '🌲';
+        this.element.textContent = this.type === 'rock' ? '🪨' : '🌲';
+        this.element.style.left = this.x + 'px';
+        this.element.style.top = this.y + 'px';
+        this.element.style.position = 'absolute';
+        this.element.style.width = '40px';
+        this.element.style.height = '40px';
+        this.element.style.display = 'flex';
+        this.element.style.alignItems = 'center';
+        this.element.style.justifyContent = 'center';
+        this.element.style.fontSize = '24px';
+        this.element.style.zIndex = '5';
         document.getElementById('obstaclesContainer').appendChild(this.element);
-        this.render();
     }
 
-    // Update obstacle position
     update() {
         this.y += this.speed;
+        this.element.style.top = this.y + 'px';
     }
 
-    // Render obstacle on screen
-    render() {
-        if (this.element) {
-            this.element.style.left = this.x + 'px';
-            this.element.style.top = this.y + 'px';
-        }
-    }
-
-    // Remove obstacle from DOM
     remove() {
-        if (this.element) {
-            this.element.remove();
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
         }
     }
 
-    // Check if obstacle is off-screen (bottom)
     isOffScreen() {
         return this.y > 600;
     }
 }
 
 // ==================== OBSTACLES MANAGEMENT ==================== //
-
 let obstacles = [];
-let lastSpawnTime = 0;
+let lastSpawnTime = Date.now();
 
-// Spawn new obstacle at random x position
 function spawnObstacle() {
-    const randomX = Math.random() * (800 - 40);
+    const randomX = Math.random() * 760;
     const randomType = Math.random() > 0.5 ? 'rock' : 'tree';
-    obstacles.push(new Obstacle(randomX, -40, randomType));
+    obstacles.push(new Obstacle(randomX, -50, randomType));
 }
 
-// Update all obstacles and remove off-screen ones
 function updateObstacles() {
-    obstacles.forEach((obstacle, index) => {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
         obstacle.update();
-        obstacle.render();
 
-        // Remove if off-screen
         if (obstacle.isOffScreen()) {
             obstacle.remove();
-            obstacles.splice(index, 1);
-            // Obstacle avoided - increase score
+            obstacles.splice(i, 1);
             gameState.score += 10;
             gameState.obstaclesAvoided++;
             gameState.currentStreak++;
@@ -135,22 +117,10 @@ function updateObstacles() {
             }
             updateHUD();
         }
-    });
+    }
 }
 
 // ==================== COLLISION DETECTION ==================== //
-
-function checkCollisions() {
-    for (let obstacle of obstacles) {
-        if (isColliding(train, obstacle)) {
-            handleCollision(obstacle);
-            return true;
-        }
-    }
-    return false;
-}
-
-// Bounding box collision detection
 function isColliding(rect1, rect2) {
     return (
         rect1.x < rect2.x + rect2.width &&
@@ -160,33 +130,29 @@ function isColliding(rect1, rect2) {
     );
 }
 
-// Handle collision with obstacle
-function handleCollision(obstacle) {
-    gameState.lives--;
-    gameState.currentStreak = 0;
-    obstacle.remove();
-    obstacles = obstacles.filter(obs => obs !== obstacle);
+function checkCollisions() {
+    for (let obstacle of obstacles) {
+        if (isColliding(train, obstacle)) {
+            gameState.lives--;
+            gameState.currentStreak = 0;
+            obstacle.remove();
+            obstacles = obstacles.filter(obs => obs !== obstacle);
+            updateHUD();
 
-    // Visual feedback
-    const trainEl = document.getElementById('train');
-    trainEl.classList.add('pulse');
-    setTimeout(() => trainEl.classList.remove('pulse'), 500);
-
-    updateHUD();
-
-    if (gameState.lives <= 0) {
-        endGame();
+            if (gameState.lives <= 0) {
+                endGame();
+                return;
+            }
+        }
     }
 }
 
 // ==================== KEYBOARD CONTROLS ==================== //
-
 const keys = {};
 
 document.addEventListener('keydown', (e) => {
     keys[e.key] = true;
 
-    // Pause/Resume with Space
     if (e.key === ' ') {
         e.preventDefault();
         togglePause();
@@ -197,12 +163,10 @@ document.addEventListener('keyup', (e) => {
     keys[e.key] = false;
 });
 
-// Update train velocity based on pressed keys
 function handleInput() {
     train.velocityX = 0;
     train.velocityY = 0;
 
-    // Arrow keys or WASD
     if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
         train.velocityX = -train.speed;
     }
@@ -218,56 +182,53 @@ function handleInput() {
 }
 
 // ==================== HUD UPDATES ==================== //
-
 function updateHUD() {
-    document.getElementById('score').textContent = gameState.score;
-    document.getElementById('lives').textContent = gameState.lives;
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    if (scoreEl) scoreEl.textContent = gameState.score;
+    if (livesEl) livesEl.textContent = gameState.lives;
 }
 
 // ==================== GAME LOOP ==================== //
-
 let gameLoopId = null;
-let currentTime = 0;
 
-function gameLoop(timestamp) {
+function gameLoop() {
     if (!gameState.gameRunning || gameState.gamePaused) {
         gameLoopId = requestAnimationFrame(gameLoop);
         return;
     }
 
-    currentTime = timestamp || 0;
-
-    // Handle player input
+    // Handle input
     handleInput();
     train.update();
     train.render();
 
-    // Spawn obstacles at regular intervals
-    if (currentTime - lastSpawnTime > gameState.spawnRate * 1000) {
+    // Spawn obstacles at intervals
+    const now = Date.now();
+    if (now - lastSpawnTime > gameState.spawnRate) {
         spawnObstacle();
-        lastSpawnTime = currentTime;
-        // Gradually increase difficulty
-        gameState.spawnRate = Math.max(0.5, 0.8 - gameState.level * 0.05);
+        lastSpawnTime = now;
+        // Increase difficulty over time
+        gameState.spawnRate = Math.max(500, gameState.spawnRate - 5);
     }
 
-    // Update obstacles
+    // Update all obstacles
     updateObstacles();
 
-    // Check for collisions
+    // Check collisions
     checkCollisions();
 
-    // Continue loop
+    // Continue game loop
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 // ==================== GAME STATE MANAGEMENT ==================== //
-
 function startGame() {
-    // Hide start screen
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('gameOverScreen').classList.add('hidden');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    if (startScreen) startScreen.classList.add('hidden');
+    if (gameOverScreen) gameOverScreen.classList.add('hidden');
 
-    // Reset game state
     gameState.score = 0;
     gameState.lives = 3;
     gameState.gameRunning = true;
@@ -275,41 +236,38 @@ function startGame() {
     gameState.obstaclesAvoided = 0;
     gameState.maxStreak = 0;
     gameState.currentStreak = 0;
-    gameState.level = 1;
-    gameState.spawnRate = 0.8;
+    gameState.spawnRate = 800;
 
-    // Reset train and obstacles
     train.reset();
+    
+    // Clear obstacles
     obstacles.forEach(obs => obs.remove());
     obstacles = [];
-    lastSpawnTime = 0;
+    lastSpawnTime = Date.now();
 
-    // Update HUD
     updateHUD();
-
-    // Start game loop
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function endGame() {
     gameState.gameRunning = false;
-
-    // Show game over screen
-    document.getElementById('finalScore').textContent = gameState.score;
-    document.getElementById('obstaclesAvoided').textContent = gameState.obstaclesAvoided;
-    document.getElementById('maxStreak').textContent = gameState.maxStreak;
-    document.getElementById('gameOverScreen').classList.remove('hidden');
-
-    // Clean up
     cancelAnimationFrame(gameLoopId);
+
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScoreEl = document.getElementById('finalScore');
+    const obstaclesAvoidedEl = document.getElementById('obstaclesAvoided');
+    const maxStreakEl = document.getElementById('maxStreak');
+
+    if (finalScoreEl) finalScoreEl.textContent = gameState.score;
+    if (obstaclesAvoidedEl) obstaclesAvoidedEl.textContent = gameState.obstaclesAvoided;
+    if (maxStreakEl) maxStreakEl.textContent = gameState.maxStreak;
+
+    if (gameOverScreen) gameOverScreen.classList.remove('hidden');
 }
 
 function restartGame() {
-    // Clear obstacles
     obstacles.forEach(obs => obs.remove());
     obstacles = [];
-
-    // Start new game
     startGame();
 }
 
@@ -317,26 +275,33 @@ function togglePause() {
     if (!gameState.gameRunning) return;
 
     gameState.gamePaused = !gameState.gamePaused;
-
     const pausedScreen = document.getElementById('pausedScreen');
+    
     if (gameState.gamePaused) {
-        pausedScreen.classList.remove('hidden');
+        if (pausedScreen) pausedScreen.classList.remove('hidden');
     } else {
-        pausedScreen.classList.add('hidden');
+        if (pausedScreen) pausedScreen.classList.add('hidden');
         gameLoopId = requestAnimationFrame(gameLoop);
     }
 }
 
-// ==================== EVENT LISTENERS ==================== //
-
-// Start button
-document.getElementById('startBtn').addEventListener('click', startGame);
-
-// Restart button
-document.getElementById('restartBtn').addEventListener('click', restartGame);
-
-// Initialize game - show start screen
+// ==================== EVENT LISTENERS & INITIALIZATION ==================== //
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚂 Train Game Loading...');
+    
+    // Setup event listeners
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+    }
+    if (restartBtn) {
+        restartBtn.addEventListener('click', restartGame);
+    }
+
+    // Initialize HUD
     updateHUD();
-    console.log('🚂 Train Game Loaded! Press "Start Game" to begin.');
+    
+    console.log('🚂 Train Game Ready! Click Start Game to begin.');
 });
