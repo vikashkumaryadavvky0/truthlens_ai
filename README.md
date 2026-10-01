@@ -29,12 +29,25 @@ Every world is a hand-drawn canvas adventure with its own landscape, atmosphere,
 
 Your best score and sound preference are saved locally in your browser. Sound effects are synthesized with the Web Audio API; there are no audio or image downloads.
 
+## Changing weather
+
+Every journey begins in clear weather. Conditions shift dynamically as you travel, with short clear spells between weather events:
+
+- **Rain** draws slanting drops over the route, reduces steering acceleration, and increases stopping distance on slick rails.
+- **Snow** adds drifting flakes and substantially reduces grip, steering response, and braking power.
+- **Fog** washes over the scene to shorten track visibility, while leaving the train and nearby objects visible.
+- **Thunderstorms** combine heavy rain, sideways gusts, slower braking, and occasional lightning.
+
+The weather badge and message below the canvas identify current conditions and their driving effect. In poor conditions, release the movement key early or steer against your momentum to brake; stopping distance is longer on wet and snowy rails.
+
 ## Features
 
 - Responsive canvas art with a scrolling railway, scenery, locomotive, hazards, and effects
 - Four selectable worlds that recolor both the game interface and its illustrated canvas scene
 - Keyboard and touch controls, plus pause/resume
 - Collectible stars, temporary shields, collision protection, score streaks, and route progression
+- Dynamic weather transitions between clear skies, rain, snow, fog, and thunderstorms
+- Weather effects with changing visibility, steering grip, momentum, braking distance, storm gusts, and lightning
 - Optional synthesized sound effects
 - Locally saved best score and sound preference
 - Reduced-motion styling and accessible control labels

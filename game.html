@@ -45,7 +45,7 @@
         <section class="game-card" aria-label="Train game">
             <div class="game-hud">
                 <div class="hud-block score-block"><span class="hud-label">DISTANCE</span><strong id="score">00000</strong></div>
-                <div class="hud-center"><span class="level-pill" id="level">ROUTE 01</span><span class="hud-message" id="statusMessage">Ready when you are!</span></div>
+                <div class="hud-center"><div class="hud-pills"><span class="level-pill" id="level">ROUTE 01</span><span class="weather-pill" id="weatherBadge" aria-live="polite"><span id="weatherIcon" aria-hidden="true">☀</span><span id="weatherName">Clear skies</span></span></div><span class="hud-message" id="statusMessage">Ready when you are!</span></div>
                 <div class="hud-block lives-block"><span class="hud-label">ENGINE HEALTH</span><span id="lives" class="hearts" aria-label="3 lives">♥ ♥ ♥</span></div>
             </div>
             <div class="canvas-wrap">
@@ -59,7 +59,7 @@
                         <span class="hero-train" aria-hidden="true">🚂</span>
                         <p class="eyebrow">A POCKET-SIZED ADVENTURE</p>
                         <h2>Ready to roll?</h2>
-                        <p>Keep your wheels on the track, grab the golden stars, and watch out for rocks!</p>
+                        <p>Keep your wheels on the track, grab the golden stars, and watch out for rocks. Conditions can change while you ride!</p>
                         <div class="quick-controls">
                             <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><small>or arrow keys</small></span>
                             <i aria-hidden="true">✦</i>
@@ -95,7 +95,7 @@
             </div>
             <div class="game-bottom">
                 <div class="legend"><span><i class="legend-rock" aria-hidden="true"></i> Rock</span><span><i class="legend-star" aria-hidden="true">✦</i> Star + shield</span></div>
-                <p>Stay nimble. The track gets faster as you travel!</p>
+                <p id="weatherEffect">Clear skies: the rails are dry and easy to handle.</p>
             </div>
         </section>
 

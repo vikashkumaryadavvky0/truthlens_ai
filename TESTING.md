@@ -16,6 +16,10 @@ The game has no build step or automated test suite. Verify it in a modern browse
 - Verify the world landmarks are distinct: the meadow stream and windmill, snowy mountain peaks and snow-topped trees, desert mesas and cacti, or neon city skyline and starfield.
 - Change theme during a run; gameplay should pause safely and retain the current run when resuming.
 - The selected world remains selected after reloading.
+- Start a journey and wait through the weather cycle; the HUD should transition from clear skies through rain, snow, fog, and thunderstorms with clear intervals.
+- Verify rain and storms render rain streaks, snow renders drifting flakes, fog veils the distant route, and thunderstorms occasionally flash lightning.
+- Compare steering and braking in clear weather with rain, snow, and storms: adverse weather should produce slower response and longer stopping distances; storms should also nudge the train sideways.
+- The weather badge and driving note should update at each transition and show the active condition.
 - At narrow viewport widths the game, HUD, and touch controls remain visible and usable.
 
 ## Verified during implementation
@@ -28,5 +32,8 @@ The game has no build step or automated test suite. Verify it in a modern browse
 - Selected each theme and confirmed the canvas colors, theme label, active-button state, and saved preference changed.
 - Confirmed that sampled canvas colors differ between all four themes and that the selected theme persisted after a page reload.
 - Changed themes during a run; the run paused, retained its state, and resumed successfully.
+- Weather visual effects and weather-dependent steering/braking were added to the game loop.
+- Browser run advanced automatically from clear skies to rain, updating both the weather badge and the wet-track handling note.
+- During rain, pausing froze score and weather transitions; resuming restarted both.
 
 Star collection, shield protection, sound playback, and small-screen behavior should also be tried in a browser as part of manual playtesting.

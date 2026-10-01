@@ -11,6 +11,10 @@
         lives: document.getElementById('lives'),
         level: document.getElementById('level'),
         status: document.getElementById('statusMessage'),
+        weatherBadge: document.getElementById('weatherBadge'),
+        weatherIcon: document.getElementById('weatherIcon'),
+        weatherName: document.getElementById('weatherName'),
+        weatherEffect: document.getElementById('weatherEffect'),
         toast: document.getElementById('toast'),
         start: document.getElementById('startScreen'),
         pause: document.getElementById('pauseScreen'),
@@ -74,6 +78,14 @@
         }
     };
 
+    const weatherTypes = {
+        clear: { name: 'Clear skies', icon: '☀', effect: 'Clear skies: the rails are dry and easy to handle.' },
+        rain: { name: 'Rain', icon: '🌧', effect: 'Rain: slick rails soften steering and lengthen braking.' },
+        snow: { name: 'Snow', icon: '❄', effect: 'Snow: low grip slows steering and makes braking take longer.' },
+        fog: { name: 'Fog', icon: '🌫', effect: 'Fog: poor visibility makes distant hazards harder to spot.' },
+        storm: { name: 'Thunderstorm', icon: '⛈', effect: 'Storm: gusts push the train; wet rails make braking slower.' }
+    };
+
     const game = {
         running: false,
         paused: false,
@@ -84,6 +96,12 @@
         bestStreak: 0,
         best: readNumber('little-locomotive-best'),
         theme: readTheme(),
+        weather: 'clear',
+        weatherClock: 8,
+        weatherDuration: 8,
+        lightningTimer: 3,
+        lightningFlash: 0,
+        lightningX: WIDTH / 2,
         elapsed: 0,
         spawnClock: 0,
         spawnEvery: 1.05,
@@ -97,7 +115,7 @@
         toastTimer: 0
     };
 
-    const train = { x: 443, y: 480, width: 74, height: 76, speed: 335 };
+    const train = { x: 443, y: 480, width: 74, height: 76, speed: 335, vx: 0, vy: 0 };
     const obstacles = [];
     const particles = [];
     const scenery = Array.from({ length: 18 }, (_, i) => ({
@@ -110,6 +128,14 @@
         x: 90 + i * 170,
         y: 35 + Math.random() * 135,
         size: 20 + Math.random() * 16
+    }));
+    const weatherParticles = Array.from({ length: 180 }, () => ({
+        x: Math.random() * WIDTH,
+        y: Math.random() * HEIGHT,
+        speed: 260 + Math.random() * 360,
+        length: 9 + Math.random() * 16,
+        drift: -25 + Math.random() * 50,
+        size: 1 + Math.random() * 2
     }));
     const keys = new Set();
     const touchKeys = new Set();
@@ -193,6 +219,13 @@
         ).join(' ');
         elements.lives.setAttribute('aria-label', `${game.lives} ${game.lives === 1 ? 'life' : 'lives'} remaining`);
         elements.level.textContent = `ROUTE ${String(Math.floor(game.score / 500) + 1).padStart(2, '0')}`;
+        const weather = weatherTypes[game.weather];
+        elements.weatherBadge.dataset.weather = game.weather;
+        if (elements.weatherName.textContent !== weather.name) {
+            elements.weatherIcon.textContent = weather.icon;
+            elements.weatherName.textContent = weather.name;
+            elements.weatherEffect.textContent = weather.effect;
+        }
     }
 
     function setStatus(message) {
@@ -255,8 +288,15 @@
         game.invulnerable = 0;
         game.trackScroll = 0;
         game.shake = 0;
+        game.weather = 'clear';
+        game.weatherClock = 0;
+        game.weatherDuration = 7;
+        game.lightningTimer = 4;
+        game.lightningFlash = 0;
         train.x = (WIDTH - train.width) / 2;
         train.y = HEIGHT - 132;
+        train.vx = 0;
+        train.vy = 0;
         obstacles.length = 0;
         particles.length = 0;
         keys.clear();
@@ -271,6 +311,64 @@
         updateHud();
         tone(523, .12);
         setTimeout(() => tone(659, .16), 100);
+    }
+
+    function changeWeather() {
+        if (game.weather === 'clear') {
+            const choices = ['rain', 'snow', 'fog', 'storm'];
+            game.weather = choices[Math.floor(Math.random() * choices.length)];
+            game.weatherDuration = 13 + Math.random() * 8;
+            setStatus(`${weatherTypes[game.weather].name} rolling in!`);
+            showToast(`${weatherTypes[game.weather].icon} ${weatherTypes[game.weather].name.toUpperCase()} AHEAD`);
+            if (game.weather === 'storm') game.lightningTimer = 2 + Math.random() * 3;
+        } else {
+            game.weather = 'clear';
+            game.weatherDuration = 6 + Math.random() * 4;
+            setStatus('The weather is clearing.');
+            showToast('☀ THE SKY IS CLEARING');
+        }
+        updateHud();
+    }
+
+    function updateWeather(delta) {
+        game.weatherClock += delta;
+        if (game.weatherClock >= game.weatherDuration) {
+            game.weatherClock = 0;
+            changeWeather();
+        }
+        game.lightningFlash = Math.max(0, game.lightningFlash - delta);
+
+        if (game.weather === 'storm') {
+            game.lightningTimer -= delta;
+            if (game.lightningTimer <= 0) {
+                game.lightningTimer = 4 + Math.random() * 6;
+                game.lightningFlash = .18 + Math.random() * .1;
+                game.lightningX = 100 + Math.random() * (WIDTH - 200);
+                tone(65, .28, 'triangle', .06);
+            }
+        }
+
+        if (game.weather === 'rain' || game.weather === 'storm') {
+            const wind = game.weather === 'storm' ? -100 : -27;
+            for (const drop of weatherParticles) {
+                drop.x += (drop.drift + wind) * delta;
+                drop.y += drop.speed * delta * (game.weather === 'storm' ? 1.25 : 1);
+                if (drop.y > HEIGHT + 22) {
+                    drop.y = -drop.length;
+                    drop.x = Math.random() * WIDTH;
+                }
+                if (drop.x < -15) drop.x = WIDTH + 8;
+            }
+        } else if (game.weather === 'snow') {
+            for (const flake of weatherParticles) {
+                flake.x += Math.sin(game.elapsed * .8 + flake.y * .02) * 22 * delta;
+                flake.y += flake.speed * delta * .3;
+                if (flake.y > HEIGHT + 5) {
+                    flake.y = -5;
+                    flake.x = Math.random() * WIDTH;
+                }
+            }
+        }
     }
 
     function endGame() {
@@ -382,8 +480,33 @@
         }
     }
 
+    function getDrivingConditions() {
+        switch (game.weather) {
+            case 'rain':
+                return { acceleration: 770, braking: 485, coast: 170, speed: .94, wind: 0 };
+            case 'snow':
+                return { acceleration: 590, braking: 340, coast: 95, speed: .78, wind: 0 };
+            case 'storm':
+                return { acceleration: 670, braking: 385, coast: 115, speed: .86, wind: -1 };
+            default:
+                return { acceleration: 1500, braking: 1280, coast: 510, speed: 1, wind: 0 };
+        }
+    }
+
+    function approachVelocity(current, target, delta, conditions) {
+        if (target === 0) {
+            const amount = conditions.coast * delta;
+            return Math.abs(current) <= amount ? 0 : current - Math.sign(current) * amount;
+        }
+        const reversingOrSlowing = current !== 0 && (Math.sign(current) !== Math.sign(target) || Math.abs(target) < Math.abs(current));
+        const amount = (reversingOrSlowing ? conditions.braking : conditions.acceleration) * delta;
+        if (Math.abs(target - current) <= amount) return target;
+        return current + Math.sign(target - current) * amount;
+    }
+
     function update(delta) {
         game.elapsed += delta;
+        updateWeather(delta);
         game.score += delta * 7;
         game.trackScroll = (game.trackScroll + delta * (125 + Math.min(game.score * .6, 180))) % 64;
         game.invulnerable = Math.max(0, game.invulnerable - delta);
@@ -403,10 +526,22 @@
             dx *= Math.SQRT1_2;
             dy *= Math.SQRT1_2;
         }
-        train.x += dx * train.speed * delta;
-        train.y += dy * train.speed * delta;
-        train.x = Math.max(230, Math.min(656, train.x));
-        train.y = Math.max(52, Math.min(HEIGHT - train.height - 12, train.y));
+        const conditions = getDrivingConditions();
+        train.vx = approachVelocity(train.vx, dx * train.speed * conditions.speed, delta, conditions);
+        train.vy = approachVelocity(train.vy, dy * train.speed * conditions.speed, delta, conditions);
+        if (game.weather === 'storm') {
+            train.vx += Math.sin(game.elapsed * 2.1) * 105 * delta;
+        }
+        train.x += train.vx * delta;
+        train.y += train.vy * delta;
+        if (train.x < 230 || train.x > 656) {
+            train.x = Math.max(230, Math.min(656, train.x));
+            train.vx = 0;
+        }
+        if (train.y < 52 || train.y > HEIGHT - train.height - 12) {
+            train.y = Math.max(52, Math.min(HEIGHT - train.height - 12, train.y));
+            train.vy = 0;
+        }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             const item = obstacles[i];
@@ -916,7 +1051,77 @@
             ctx.textAlign = 'center';
             ctx.fillText(`SHIELD ${game.shield.toFixed(1)}s`, train.x + train.width / 2, train.y - 8);
         }
+        drawWeather(time);
         ctx.restore();
+    }
+
+    function drawWeather(time) {
+        if (game.weather === 'rain' || game.weather === 'storm') {
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = game.theme === 'neon' ? 'rgba(157,238,255,.53)' : 'rgba(224,244,255,.62)';
+            ctx.lineWidth = game.weather === 'storm' ? 1.8 : 1.25;
+            ctx.globalAlpha = game.weather === 'storm' ? .67 : .48;
+            ctx.beginPath();
+            for (const drop of weatherParticles) {
+                ctx.moveTo(drop.x, drop.y);
+                ctx.lineTo(drop.x - drop.length * .24, drop.y + drop.length);
+            }
+            ctx.stroke();
+            ctx.restore();
+        } else if (game.weather === 'snow') {
+            ctx.save();
+            for (const flake of weatherParticles) {
+                const radius = flake.size * 1.1;
+                ctx.globalAlpha = .4 + (flake.size / 3) * .35;
+                ctx.fillStyle = game.theme === 'sunset' ? '#fff4dc' : '#ffffff';
+                ctx.beginPath();
+                ctx.arc(flake.x, flake.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        } else if (game.weather === 'fog') {
+            // Translucent drifting fog washes out the scene and shortens the view of the rails.
+            ctx.save();
+            const haze = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+            haze.addColorStop(0, 'rgba(226,237,237,.16)');
+            haze.addColorStop(.28, 'rgba(226,237,237,.42)');
+            haze.addColorStop(.56, 'rgba(226,237,237,.2)');
+            haze.addColorStop(.83, 'rgba(226,237,237,.48)');
+            haze.addColorStop(1, 'rgba(226,237,237,.22)');
+            ctx.fillStyle = haze;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            for (let i = 0; i < 5; i++) {
+                const x = (i * 248 + time * (i % 2 ? 8 : -5) + WIDTH) % (WIDTH + 140) - 70;
+                const y = 115 + i * 96 + Math.sin(time + i) * 17;
+                const cloud = ctx.createRadialGradient(x, y, 8, x, y, 175);
+                cloud.addColorStop(0, 'rgba(235,244,243,.28)');
+                cloud.addColorStop(1, 'rgba(235,244,243,0)');
+                ctx.fillStyle = cloud;
+                ctx.fillRect(x - 175, y - 75, 350, 150);
+            }
+            ctx.restore();
+        }
+
+        if (game.weather === 'storm' && game.lightningFlash > 0) {
+            ctx.save();
+            ctx.fillStyle = `rgba(229,240,255,${Math.min(.45, game.lightningFlash * 1.8)})`;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            const x = game.lightningX;
+            ctx.shadowColor = '#e7f4ff';
+            ctx.shadowBlur = 24;
+            ctx.fillStyle = '#f5fbff';
+            ctx.beginPath();
+            ctx.moveTo(x, 15);
+            ctx.lineTo(x - 24, 93);
+            ctx.lineTo(x + 5, 84);
+            ctx.lineTo(x - 13, 157);
+            ctx.lineTo(x + 32, 72);
+            ctx.lineTo(x + 7, 83);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
     }
 
     function frame(timestamp) {

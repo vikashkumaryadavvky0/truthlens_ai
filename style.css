@@ -96,6 +96,11 @@ button { font: inherit; }
 .heart-lost { color: #455873; text-shadow: none; }
 .hud-center { display: flex; align-items: center; justify-content: center; gap: 11px; }
 .level-pill { padding: 5px 9px; color: #bbd9ff; border: 1px solid rgba(129,185,255,.25); border-radius: 20px; background: rgba(129,185,255,.1); font-size: 8px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; }
+.hud-pills { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.weather-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; color: #d6e6f5; border: 1px solid rgba(183,211,238,.2); border-radius: 20px; background: rgba(255,255,255,.07); font-size: 8px; font-weight: 700; white-space: nowrap; }
+.weather-pill[data-weather="rain"], .weather-pill[data-weather="storm"] { border-color: rgba(129,185,255,.4); background: rgba(91,155,219,.17); }
+.weather-pill[data-weather="snow"] { border-color: rgba(206,239,255,.42); background: rgba(197,233,255,.14); }
+.weather-pill[data-weather="fog"] { border-color: rgba(197,210,219,.38); background: rgba(197,210,219,.12); }
 .hud-message { color: #9bb0c8; font-size: 11px; text-align: center; }
 
 .canvas-wrap { position: relative; width: 100%; aspect-ratio: 8 / 5; overflow: hidden; background: #a6d7d5; }
@@ -222,12 +227,13 @@ kbd { width: 23px; height: 23px; display: inline-grid; place-items: center; colo
     .score-block strong { font-size: 18px; }
     .hearts { font-size: 13px; letter-spacing: 2px; }
     .hud-center { flex-direction: column; gap: 3px; }
-    .level-pill { padding: 3px 7px; font-size: 7px; }
+    .hud-pills { gap: 3px; }
+    .level-pill, .weather-pill { padding: 3px 5px; font-size: 7px; letter-spacing: .3px; }
     .hud-message { font-size: 8px; }
     .canvas-wrap { aspect-ratio: 3 / 2; }
     .game-bottom { min-height: 37px; padding: 0 11px; }
     .legend { gap: 10px; font-size: 8px; }
-    .game-bottom p { font-size: 8px; }
+    .game-bottom p { max-width: 190px; font-size: 8px; text-align: right; }
     .overlay-card { padding: 21px; }
     .hero-train { font-size: 34px; }
     .overlay-card h2 { font-size: 25px; }
