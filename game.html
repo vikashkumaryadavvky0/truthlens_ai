@@ -1,515 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚂 Train Game</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 10px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 900px;
-            width: 100%;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 3px solid #764ba2;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .stat {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-        }
-
-        .game-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background: #f0f0f0;
-        }
-
-        #gameCanvas {
-            border: 4px solid #333;
-            background: linear-gradient(135deg, #87ceeb 0%, #e0f6ff 100%);
-            display: block;
-            cursor: none;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 15px;
-            font-size: 13px;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-        }
-
-        .overlay.hidden {
-            display: none;
-        }
-
-        .overlay-content {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .overlay-content h2 {
-            font-size: 32px;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .instructions {
-            text-align: left;
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-size: 14px;
-        }
-
-        .instructions h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .instructions ul {
-            list-style: none;
-        }
-
-        .instructions li {
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .instructions li:last-child {
-            border-bottom: none;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .stats-display {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .stats-display p {
-            margin: 8px 0;
-        }
-    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#091526">
+    <meta name="description" content="Drive a cheerful little train, dodge hazards, collect gems, and beat your high score.">
+    <title>Little Locomotive | A tiny train adventure</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚂 Train Game</h1>
-            <div class="stats">
-                <span class="stat">Score: <strong id="score">0</strong></span>
-                <span class="stat">Lives: <strong id="lives">3</strong></span>
+    <main class="game-shell">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="Little Locomotive home">
+                <span class="brand-icon" aria-hidden="true">🚂</span>
+                <span><strong>Little Locomotive</strong><small>THE GREAT RAIL ESCAPE</small></span>
+            </a>
+            <div class="top-actions">
+                <button class="icon-button" id="soundButton" type="button" aria-label="Turn sound off" title="Toggle sound">
+                    <span id="soundIcon" aria-hidden="true">♫</span><span class="button-label">Sound on</span>
+                </button>
+                <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause (P or Space)" disabled>
+                    <span id="pauseIcon" aria-hidden="true">Ⅱ</span><span class="button-label">Pause</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="intro">
+            <div>
+                <p class="eyebrow">ALL ABOARD, ADVENTURER</p>
+                <h1>Keep the good times <span>rolling.</span></h1>
+                <p class="intro-copy">Dodge the rocky track, scoop up shiny stars, and see how far your little engine can go.</p>
+            </div>
+            <div class="best-card" aria-label="Personal best">
+                <span class="best-star" aria-hidden="true">✦</span>
+                <span><small>YOUR BEST</small><strong id="bestScore">00000</strong></span>
+            </div>
+        </section>
+
+        <section class="game-card" aria-label="Train game">
+            <div class="game-hud">
+                <div class="hud-block score-block"><span class="hud-label">DISTANCE</span><strong id="score">00000</strong></div>
+                <div class="hud-center"><span class="level-pill" id="level">ROUTE 01</span><span class="hud-message" id="statusMessage">Ready when you are!</span></div>
+                <div class="hud-block lives-block"><span class="hud-label">ENGINE HEALTH</span><span id="lives" class="hearts" aria-label="3 lives">♥ ♥ ♥</span></div>
+            </div>
+            <div class="canvas-wrap">
+                <canvas id="gameCanvas" width="960" height="600" aria-label="Game scene. Steer the train to avoid obstacles and collect stars." role="img">
+                    Your browser does not support the HTML canvas. Use a recent version of Chrome, Firefox, Safari, or Edge.
+                </canvas>
+                <div class="canvas-vignette" aria-hidden="true"></div>
+                <div id="toast" class="toast" role="status" aria-live="polite"></div>
+                <div id="startScreen" class="game-overlay">
+                    <div class="overlay-card start-card">
+                        <span class="hero-train" aria-hidden="true">🚂</span>
+                        <p class="eyebrow">A POCKET-SIZED ADVENTURE</p>
+                        <h2>Ready to roll?</h2>
+                        <p>Keep your wheels on the track, grab the golden stars, and watch out for rocks!</p>
+                        <div class="quick-controls">
+                            <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><small>or arrow keys</small></span>
+                            <i aria-hidden="true">✦</i>
+                            <span class="quick-shield">✧<small>Power-ups give you a shield</small></span>
+                        </div>
+                        <button class="primary-button" id="startButton" type="button">Start your journey <span aria-hidden="true">→</span></button>
+                        <small class="start-note">No rush. Press P or Space to pause any time.</small>
+                    </div>
+                </div>
+                <div id="pauseScreen" class="game-overlay is-hidden">
+                    <div class="overlay-card compact-card">
+                        <span class="overlay-symbol" aria-hidden="true">Ⅱ</span>
+                        <p class="eyebrow">TAKE YOUR TIME</p>
+                        <h2>Journey paused</h2>
+                        <p>Your train isn't going anywhere.</p>
+                        <button class="primary-button" id="resumeButton" type="button">Back on track <span aria-hidden="true">→</span></button>
+                    </div>
+                </div>
+                <div id="gameOverScreen" class="game-overlay is-hidden">
+                    <div class="overlay-card compact-card">
+                        <span class="overlay-symbol" aria-hidden="true">✦</span>
+                        <p class="eyebrow">WHAT A RIDE</p>
+                        <h2>Journey complete!</h2>
+                        <p class="final-distance">You travelled <strong id="finalScore">0</strong> points</p>
+                        <div class="result-stats">
+                            <span><small>STARS COLLECTED</small><strong id="starsCollected">0</strong></span>
+                            <span><small>BEST STREAK</small><strong id="maxStreak">0</strong></span>
+                        </div>
+                        <button class="primary-button" id="restartButton" type="button">Ride again <span aria-hidden="true">↻</span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="game-bottom">
+                <div class="legend"><span><i class="legend-rock" aria-hidden="true"></i> Rock</span><span><i class="legend-star" aria-hidden="true">✦</i> Star + shield</span></div>
+                <p>Stay nimble. The track gets faster as you travel!</p>
+            </div>
+        </section>
+
+        <div class="below-game">
+            <div class="tip"><span class="tip-icon" aria-hidden="true">✧</span><p><strong>Little tip</strong><br>Stars give you a short shield, so grab one before the track gets busy.</p></div>
+            <div class="touch-controls" aria-label="Touch movement controls">
+                <button type="button" data-direction="up" aria-label="Move up">↑</button>
+                <button type="button" data-direction="left" aria-label="Move left">←</button>
+                <button type="button" data-direction="down" aria-label="Move down">↓</button>
+                <button type="button" data-direction="right" aria-label="Move right">→</button>
+                <span>TOUCH TO STEER</span>
             </div>
         </div>
-
-        <div class="game-wrapper">
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
-        </div>
-
-        <div class="footer">
-            Use Arrow Keys or WASD to move • Avoid obstacles to survive • Press Space to pause
-        </div>
-    </div>
-
-    <!-- Start Screen -->
-    <div id="startScreen" class="overlay">
-        <div class="overlay-content">
-            <h2>🚂 Train Game</h2>
-            <p style="font-size: 18px; color: #666; margin-bottom: 20px;">Avoid the obstacles and survive!</p>
-            <div class="instructions">
-                <h3>How to Play:</h3>
-                <ul>
-                    <li><strong>Move:</strong> Arrow Keys or WASD</li>
-                    <li><strong>Objective:</strong> Avoid rocks and trees</li>
-                    <li><strong>Scoring:</strong> +10 points per obstacle avoided</li>
-                    <li><strong>Lives:</strong> 3 lives before game over</li>
-                    <li><strong>Pause:</strong> Press Space to pause/resume</li>
-                </ul>
-            </div>
-            <button onclick="startGame()">Start Game</button>
-        </div>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="gameOverScreen" class="overlay hidden">
-        <div class="overlay-content">
-            <h2>Game Over!</h2>
-            <p style="font-size: 24px; font-weight: bold; color: #667eea; margin: 15px 0;">
-                Final Score: <span id="finalScore">0</span>
-            </p>
-            <div class="stats-display">
-                <p>Obstacles Avoided: <span id="obstaclesAvoided">0</span></p>
-                <p>Max Streak: <span id="maxStreak">0</span></p>
-            </div>
-            <button onclick="startGame()">Play Again</button>
-        </div>
-    </div>
-
-    <!-- Paused Screen -->
-    <div id="pauseScreen" class="overlay hidden">
-        <div class="overlay-content">
-            <h2>Paused</h2>
-            <p style="font-size: 18px; color: #666; margin-top: 20px;">Press Space to Resume</p>
-        </div>
-    </div>
-
-    <script>
-        // Game Canvas and Context
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Game State
-        const gameState = {
-            score: 0,
-            lives: 3,
-            gameRunning: false,
-            gamePaused: false,
-            obstaclesAvoided: 0,
-            maxStreak: 0,
-            currentStreak: 0
-        };
-
-        // Train Object
-        const train = {
-            x: 375,
-            y: 550,
-            width: 50,
-            height: 35,
-            speed: 6,
-            velocityX: 0,
-            velocityY: 0,
-
-            update() {
-                this.x += this.velocityX;
-                this.y += this.velocityY;
-
-                // Boundaries
-                if (this.x < 0) this.x = 0;
-                if (this.x + this.width > 800) this.x = 800 - this.width;
-                if (this.y < 0) this.y = 0;
-                if (this.y + this.height > 600) this.y = 600 - this.height;
-            },
-
-            draw() {
-                // Train body (red)
-                ctx.fillStyle = '#ff6b6b';
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.strokeStyle = '#8b0000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-
-                // Train window (blue)
-                ctx.fillStyle = '#87ceeb';
-                ctx.fillRect(this.x + 15, this.y + 8, 20, 15);
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(this.x + 15, this.y + 8, 20, 15);
-
-                // Wheels
-                ctx.fillStyle = '#333';
-                ctx.beginPath();
-                ctx.arc(this.x + 10, this.y + this.height, 5, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(this.x + 40, this.y + this.height, 5, 0, Math.PI * 2);
-                ctx.fill();
-            },
-
-            reset() {
-                this.x = 375;
-                this.y = 550;
-                this.velocityX = 0;
-                this.velocityY = 0;
-            }
-        };
-
-        // Obstacle Class
-        class Obstacle {
-            constructor(x, y, type = 'rock') {
-                this.x = x;
-                this.y = y;
-                this.width = 40;
-                this.height = 40;
-                this.speed = 2 + Math.random() * 1.5;
-                this.type = type;
-            }
-
-            update() {
-                this.y += this.speed;
-            }
-
-            draw() {
-                if (this.type === 'rock') {
-                    ctx.fillStyle = '#808080';
-                    ctx.strokeStyle = '#404040';
-                } else {
-                    ctx.fillStyle = '#228b22';
-                    ctx.strokeStyle = '#0f4c0f';
-                }
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.lineWidth = 2;
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-
-                // Draw emoji
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.type === 'rock' ? '🪨' : '🌲', this.x + 20, this.y + 20);
-            }
-
-            isOffScreen() {
-                return this.y > 600;
-            }
-        }
-
-        // Obstacles array
-        let obstacles = [];
-        let spawnTimer = 0;
-        const spawnInterval = 800; // milliseconds
-
-        // Input handling
-        const keys = {};
-
-        window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            if (e.key === ' ') {
-                e.preventDefault();
-                togglePause();
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        function handleInput() {
-            train.velocityX = 0;
-            train.velocityY = 0;
-
-            if (keys['ArrowLeft'] || keys['a'] || keys['A']) train.velocityX = -train.speed;
-            if (keys['ArrowRight'] || keys['d'] || keys['D']) train.velocityX = train.speed;
-            if (keys['ArrowUp'] || keys['w'] || keys['W']) train.velocityY = -train.speed;
-            if (keys['ArrowDown'] || keys['s'] || keys['S']) train.velocityY = train.speed;
-        }
-
-        // Collision detection
-        function checkCollision(rect1, rect2) {
-            return (
-                rect1.x < rect2.x + rect2.width &&
-                rect1.x + rect1.width > rect2.x &&
-                rect1.y < rect2.y + rect2.height &&
-                rect1.y + rect1.height > rect2.y
-            );
-        }
-
-        // Update HUD
-        function updateHUD() {
-            document.getElementById('score').textContent = gameState.score;
-            document.getElementById('lives').textContent = gameState.lives;
-        }
-
-        // Start game
-        function startGame() {
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('gameOverScreen').classList.add('hidden');
-            document.getElementById('pauseScreen').classList.add('hidden');
-
-            gameState.score = 0;
-            gameState.lives = 3;
-            gameState.gameRunning = true;
-            gameState.gamePaused = false;
-            gameState.obstaclesAvoided = 0;
-            gameState.maxStreak = 0;
-            gameState.currentStreak = 0;
-
-            train.reset();
-            obstacles = [];
-            spawnTimer = 0;
-
-            updateHUD();
-            gameLoop();
-        }
-
-        // End game
-        function endGame() {
-            gameState.gameRunning = false;
-            document.getElementById('finalScore').textContent = gameState.score;
-            document.getElementById('obstaclesAvoided').textContent = gameState.obstaclesAvoided;
-            document.getElementById('maxStreak').textContent = gameState.maxStreak;
-            document.getElementById('gameOverScreen').classList.remove('hidden');
-        }
-
-        // Toggle pause
-        function togglePause() {
-            if (!gameState.gameRunning) return;
-
-            gameState.gamePaused = !gameState.gamePaused;
-            document.getElementById('pauseScreen').classList.toggle('hidden');
-        }
-
-        // Game loop
-        function gameLoop() {
-            if (!gameState.gameRunning) return;
-            if (gameState.gamePaused) {
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-
-            // Handle input
-            handleInput();
-            train.update();
-
-            // Spawn obstacles
-            spawnTimer++;
-            if (spawnTimer > spawnInterval / 16.67) { // ~60fps
-                const randomX = Math.random() * 760;
-                const randomType = Math.random() > 0.5 ? 'rock' : 'tree';
-                obstacles.push(new Obstacle(randomX, -50, randomType));
-                spawnTimer = 0;
-            }
-
-            // Update obstacles
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].update();
-
-                if (obstacles[i].isOffScreen()) {
-                    obstacles.splice(i, 1);
-                    gameState.score += 10;
-                    gameState.obstaclesAvoided++;
-                    gameState.currentStreak++;
-                    if (gameState.currentStreak > gameState.maxStreak) {
-                        gameState.maxStreak = gameState.currentStreak;
-                    }
-                    updateHUD();
-                } else {
-                    // Check collision
-                    if (checkCollision(train, obstacles[i])) {
-                        gameState.lives--;
-                        gameState.currentStreak = 0;
-                        obstacles.splice(i, 1);
-                        updateHUD();
-
-                        if (gameState.lives <= 0) {
-                            endGame();
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // Clear canvas
-            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
-            ctx.fillRect(0, 0, 800, 600);
-
-            // Draw grid pattern
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 800; i += 80) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, 600);
-                ctx.stroke();
-            }
-
-            // Draw game elements
-            train.draw();
-            obstacles.forEach(obs => obs.draw());
-
-            // Continue loop
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Initialize
-        window.addEventListener('load', () => {
-            console.log('🚂 Train Game Ready!');
-            updateHUD();
-        });
-    </script>
+        <footer class="page-footer">Made for curious conductors <span aria-hidden="true">♥</span> Keyboard and touch controls supported</footer>
+    </main>
 </body>
 </html>
