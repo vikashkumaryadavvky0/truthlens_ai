@@ -1,0 +1,486 @@
+/* ==================== Global Styles ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+}
+
+/* ==================== Header ==================== */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid #764ba2;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+#score, #lives {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+/* ==================== Game Wrapper & Area ==================== */
+.game-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+    min-height: 400px;
+}
+
+.game-area {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 800 / 600;
+    background: linear-gradient(135deg, #87ceeb 0%, #e0f6ff 100%);
+    border: 4px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    background-image:
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 79px,
+            #ddd 79px,
+            #ddd 81px
+        );
+}
+
+/* ==================== Train Styles ==================== */
+.train {
+    position: absolute;
+    width: 50px;
+    height: 35px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    cursor: move;
+}
+
+.train-body {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+    border: 2px solid #8b0000;
+    border-radius: 5px;
+    position: relative;
+    box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.train-body::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #333;
+    border-radius: 50%;
+    bottom: -8px;
+    left: 10%;
+    box-shadow: 22px 0 0 #333;
+}
+
+.train-window {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #87ceeb, #e0ffff);
+    border: 1px solid #333;
+    border-radius: 2px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Train movement animations */
+@keyframes trainMove {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.02); }
+}
+
+.train.moving {
+    animation: trainMove 0.2s ease-in-out;
+}
+
+/* ==================== Obstacle Styles ==================== */
+.obstacles-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.obstacle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    border: 2px solid #5c2e0a;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 5;
+}
+
+.obstacle.rock {
+    background: linear-gradient(135deg, #808080 0%, #606060 100%);
+    border-color: #404040;
+}
+
+.obstacle.tree {
+    background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%);
+    border-color: #0f4c0f;
+}
+
+.obstacle::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 100%);
+    border-radius: 4px;
+}
+
+/* ==================== Screen Overlays ==================== */
+.screen-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s ease;
+}
+
+.screen-overlay.hidden {
+    display: none;
+}
+
+.screen-content {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.screen-overlay h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.screen-subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.final-score {
+    font-size: 24px;
+    font-weight: bold;
+    color: #667eea;
+    margin: 15px 0;
+}
+
+.game-over-stats {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.game-over-stats p {
+    margin: 8px 0;
+}
+
+.instructions {
+    text-align: left;
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.instructions h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.instructions ul {
+    list-style: none;
+}
+
+.instructions li {
+    padding: 8px 0;
+    font-size: 14px;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+}
+
+.instructions li:last-child {
+    border-bottom: none;
+}
+
+/* ==================== Button Styles ==================== */
+.btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ==================== Footer ==================== */
+.footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 13px;
+    border-top: 2px solid #667eea;
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 24px;
+    }
+
+    .header-info {
+        gap: 20px;
+        font-size: 16px;
+    }
+
+    .game-area {
+        aspect-ratio: 4 / 3;
+    }
+
+    .train {
+        width: 45px;
+        height: 30px;
+    }
+
+    .obstacle {
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+
+    .screen-content {
+        padding: 30px;
+        max-width: 90%;
+    }
+
+    .screen-overlay h2 {
+        font-size: 28px;
+    }
+
+    .instructions {
+        font-size: 13px;
+    }
+
+    .instructions li {
+        padding: 6px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+
+    .header {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .header-info {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .game-wrapper {
+        padding: 10px;
+        min-height: 300px;
+    }
+
+    .game-area {
+        aspect-ratio: 3 / 4;
+        max-width: 100%;
+    }
+
+    .train {
+        width: 40px;
+        height: 28px;
+    }
+
+    .obstacle {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+    }
+
+    .screen-content {
+        padding: 20px;
+    }
+
+    .screen-overlay h2 {
+        font-size: 24px;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .footer {
+        padding: 10px;
+        font-size: 12px;
+    }
+}
+
+/* ==================== Utility Classes ==================== */
+.hidden {
+    display: none !important;
+}
+
+/* ==================== Animations ==================== */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.pulse {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.btn:hover {
+    animation: bounce 0.6s ease-in-out;
+}

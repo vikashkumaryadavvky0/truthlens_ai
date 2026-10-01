@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Game - Avoid Obstacles!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🚂 Train Game</h1>
+            <div class="header-info">
+                <span class="info-item">Score: <span id="score">0</span></span>
+                <span class="info-item">Lives: <span id="lives">3</span></span>
+            </div>
+        </header>
+
+        <!-- Game Area -->
+        <div class="game-wrapper">
+            <div id="gameArea" class="game-area">
+                <!-- Train will be rendered here -->
+                <div id="train" class="train">
+                    <div class="train-body">
+                        <div class="train-window"></div>
+                    </div>
+                </div>
+
+                <!-- Obstacles container -->
+                <div id="obstaclesContainer" class="obstacles-container"></div>
+
+                <!-- Start Screen Overlay -->
+                <div id="startScreen" class="screen-overlay start-screen">
+                    <div class="screen-content">
+                        <h2>🚂 Train Game</h2>
+                        <p class="screen-subtitle">Avoid the obstacles!</p>
+                        <div class="instructions">
+                            <h3>How to Play:</h3>
+                            <ul>
+                                <li><strong>Move:</strong> Arrow Keys or WASD</li>
+                                <li><strong>Objective:</strong> Avoid rocks and trees</li>
+                                <li><strong>Scoring:</strong> +10 points per obstacle avoided</li>
+                                <li><strong>Lives:</strong> 3 lives before game over</li>
+                            </ul>
+                        </div>
+                        <button id="startBtn" class="btn btn-primary">Start Game</button>
+                    </div>
+                </div>
+
+                <!-- Game Over Screen Overlay -->
+                <div id="gameOverScreen" class="screen-overlay game-over-screen hidden">
+                    <div class="screen-content">
+                        <h2>Game Over!</h2>
+                        <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+                        <div class="game-over-stats">
+                            <p>Total Obstacles Avoided: <span id="obstaclesAvoided">0</span></p>
+                            <p>Max Streak: <span id="maxStreak">0</span></p>
+                        </div>
+                        <button id="restartBtn" class="btn btn-primary">Play Again</button>
+                    </div>
+                </div>
+
+                <!-- Game Paused Overlay (optional) -->
+                <div id="pausedScreen" class="screen-overlay paused-screen hidden">
+                    <div class="screen-content">
+                        <h2>Paused</h2>
+                        <p>Press Space to Resume</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Use Arrow Keys or WASD to move • Press Space to pause • Avoid obstacles to survive!</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
