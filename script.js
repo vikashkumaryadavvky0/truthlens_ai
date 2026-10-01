@@ -24,7 +24,54 @@
         pauseIcon: document.getElementById('pauseIcon'),
         resumeButton: document.getElementById('resumeButton'),
         soundButton: document.getElementById('soundButton'),
-        soundIcon: document.getElementById('soundIcon')
+        soundIcon: document.getElementById('soundIcon'),
+        themeButton: document.getElementById('themeButton'),
+        themeButtonLabel: document.getElementById('themeButtonLabel'),
+        themeIcon: document.getElementById('themeIcon'),
+        themeName: document.getElementById('selectedThemeName'),
+        themeDescription: document.getElementById('selectedThemeDescription'),
+        themeScreen: document.getElementById('themeScreen'),
+        closeThemeButton: document.getElementById('closeThemeButton'),
+        chooseThemeButton: document.getElementById('chooseThemeButton')
+    };
+
+    const themes = {
+        meadow: {
+            name: 'Sunny Meadow', shortName: 'Meadow', icon: '🌿', description: 'Wildflowers, rolling hills, and fresh green tracks.',
+            sky: ['#bce7ed', '#d9eee1', '#b6e4dc'], ground: '#77c2a4', farHill: '#4b9a81', nearHill: '#6aae8a',
+            bed: '#b9a88b', sleeper: '#86745d', rail: '#685d50', railLight: '#ddd0b1',
+            trees: ['#408d70', '#367f68'], trunk: '#916e4d', flowers: ['#fff1b7', '#e2ffcb'],
+            sun: '#fff3c5', skyGlow: 'rgba(255,248,207,.82)', edgeShade: 'rgba(30,87,69,.13)',
+            train: ['#d6534c', '#f27661', '#b84143', '#233e50', '#bfe9e7', '#ffd982', '#f4c965', '#3e4850', '#222f39'],
+            rock: ['#727f83', '#59696d', 'rgba(237,244,225,.38)'], star: '#ffd15e', starLight: '#fff0ae', shield: '#9af3d1'
+        },
+        winter: {
+            name: 'Frosty Peaks', shortName: 'Frosty Peaks', icon: '❄️', description: 'Snow-capped pines and crisp, icy-blue rails.',
+            sky: ['#77a9d1', '#c6e2f1', '#e7f1f5'], ground: '#dcebf1', farHill: '#789eb8', nearHill: '#a6c7d5',
+            bed: '#a7bac4', sleeper: '#728996', rail: '#536e81', railLight: '#e9f8ff',
+            trees: ['#397b83', '#51969a'], trunk: '#78695f', flowers: ['#ffffff', '#d8f3ff'],
+            sun: '#f2fbff', skyGlow: 'rgba(235,249,255,.78)', edgeShade: 'rgba(60,112,147,.13)',
+            train: ['#2871a3', '#4e9dcc', '#20567f', '#1b3b55', '#c8f0ff', '#fff2c9', '#e9f5ff', '#405766', '#283d4a'],
+            rock: ['#8299a6', '#5a7382', 'rgba(243,251,255,.78)'], star: '#9ceaff', starLight: '#effcff', shield: '#a9e8ff'
+        },
+        sunset: {
+            name: 'Golden Sunset', shortName: 'Sunset', icon: '🌅', description: 'Warm desert skies, copper cliffs, and golden rails.',
+            sky: ['#e88769', '#f5bc83', '#f9d9a2'], ground: '#cc9366', farHill: '#a85f55', nearHill: '#bc7959',
+            bed: '#9b735d', sleeper: '#684d43', rail: '#57443f', railLight: '#f0c58c',
+            trees: ['#54765a', '#72915f'], trunk: '#75503d', flowers: ['#ffe49b', '#ffc88e'],
+            sun: '#fff0ad', skyGlow: 'rgba(255,221,157,.8)', edgeShade: 'rgba(107,62,54,.16)',
+            train: ['#c25a3e', '#ef8858', '#994435', '#563e3d', '#ffe0b1', '#fff0bd', '#ffd077', '#594740', '#3e3634'],
+            rock: ['#9c6854', '#70483f', 'rgba(255,225,180,.45)'], star: '#fff0a0', starLight: '#fffbe1', shield: '#ffd09a'
+        },
+        neon: {
+            name: 'Neon Night', shortName: 'Neon Night', icon: '🌙', description: 'A starlit night ride with electric violet and aqua.',
+            sky: ['#151c46', '#282b5d', '#54447a'], ground: '#443864', farHill: '#302959', nearHill: '#554178',
+            bed: '#39334e', sleeper: '#25263d', rail: '#252c4e', railLight: '#74eaf5',
+            trees: ['#443b78', '#584389'], trunk: '#34314c', flowers: ['#ff8edb', '#8cf9ff'],
+            sun: '#f3a8e8', skyGlow: 'rgba(245,167,239,.66)', edgeShade: 'rgba(14,17,55,.3)',
+            train: ['#15aebd', '#45e3db', '#16758c', '#182942', '#a8fff4', '#ffe6ff', '#ff88db', '#30304a', '#191e35'],
+            rock: ['#66628a', '#454164', 'rgba(210,190,255,.62)'], star: '#ff88db', starLight: '#fff0ff', shield: '#8cf9ff'
+        }
     };
 
     const game = {
@@ -36,6 +83,7 @@
         streak: 0,
         bestStreak: 0,
         best: readNumber('little-locomotive-best'),
+        theme: readTheme(),
         elapsed: 0,
         spawnClock: 0,
         spawnEvery: 1.05,
@@ -66,12 +114,46 @@
     const keys = new Set();
     const touchKeys = new Set();
     let soundUnlocked = false;
-    const routeColors = [
-        ['#b6e4dc', '#77c2a4', '#4b9a81'],
-        ['#b4d5ef', '#83b2d1', '#5c88ac'],
-        ['#d9d4f5', '#aaa1d6', '#7770ae'],
-        ['#f4dbad', '#d4ad72', '#a88350']
-    ];
+    function readTheme() {
+        try {
+            const saved = localStorage.getItem('little-locomotive-theme');
+            return saved && Object.hasOwn(themes, saved) ? saved : 'meadow';
+        } catch {
+            return 'meadow';
+        }
+    }
+
+    function activeTheme() {
+        return themes[game.theme];
+    }
+
+    function applyTheme(themeId) {
+        if (!Object.hasOwn(themes, themeId)) return;
+        game.theme = themeId;
+        const theme = activeTheme();
+        document.documentElement.dataset.theme = themeId;
+        elements.themeIcon.textContent = theme.icon;
+        elements.themeButtonLabel.textContent = theme.shortName;
+        elements.themeName.textContent = theme.name;
+        elements.themeDescription.textContent = theme.description;
+        document.querySelectorAll('[data-theme-choice]').forEach((button) => {
+            button.setAttribute('aria-pressed', String(button.dataset.themeChoice === themeId));
+        });
+        store('little-locomotive-theme', themeId);
+        render(performance.now() / 1000);
+    }
+
+    function openThemePicker() {
+        if (game.running && !game.paused) togglePause(true);
+        elements.themeScreen.classList.remove('is-hidden');
+        const selected = elements.themeScreen.querySelector('[aria-pressed="true"]');
+        if (selected) selected.focus();
+    }
+
+    function closeThemePicker() {
+        elements.themeScreen.classList.add('is-hidden');
+        elements.themeButton.focus();
+    }
 
     function readNumber(key) {
         try {
@@ -362,15 +444,15 @@
     }
 
     function drawBackground(time) {
-        const palette = routeColors[Math.floor(game.score / 1500) % routeColors.length];
+        const theme = activeTheme();
         const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-        sky.addColorStop(0, '#bce7ed');
-        sky.addColorStop(.42, '#d9eee1');
-        sky.addColorStop(1, palette[0]);
+        sky.addColorStop(0, theme.sky[0]);
+        sky.addColorStop(.42, theme.sky[1]);
+        sky.addColorStop(1, theme.sky[2]);
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-        ctx.fillStyle = 'rgba(255,248,207,.82)';
+        ctx.fillStyle = theme.skyGlow;
         ctx.beginPath();
         ctx.arc(804, 88, 34, 0, Math.PI * 2);
         ctx.fill();
@@ -380,9 +462,9 @@
             drawCloud(x, cloud.y, cloud.size);
         }
 
-        ctx.fillStyle = palette[1];
+        ctx.fillStyle = theme.ground;
         ctx.fillRect(0, 205, WIDTH, HEIGHT - 205);
-        ctx.fillStyle = palette[2];
+        ctx.fillStyle = theme.farHill;
         ctx.beginPath();
         ctx.moveTo(0, 220);
         for (let x = 0; x <= WIDTH; x += 40) {
@@ -392,8 +474,8 @@
         ctx.lineTo(0, HEIGHT);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = palette[1];
-        ctx.globalAlpha = .62;
+        ctx.fillStyle = theme.nearHill;
+        ctx.globalAlpha = .72;
         ctx.beginPath();
         ctx.moveTo(0, 310);
         for (let x = 0; x <= WIDTH; x += 45) ctx.lineTo(x, 264 + Math.sin(x * .009 + 2) * 31);
@@ -403,23 +485,38 @@
         ctx.fill();
         ctx.globalAlpha = 1;
 
-        ctx.fillStyle = 'rgba(255,255,255,.11)';
-        for (let x = 18; x < WIDTH; x += 37) {
-            const y = 330 + ((x * 7 + game.trackScroll * 2) % 255);
-            drawFlower(x, y, x % 3 === 0 ? '#fff1b7' : '#e2ffcb');
+        if (game.theme === 'meadow' || game.theme === 'sunset') {
+            for (let x = 18; x < WIDTH; x += 37) {
+                const y = 330 + ((x * 7 + game.trackScroll * 2) % 255);
+                drawFlower(x, y, theme.flowers[x % 2]);
+            }
+        } else if (game.theme === 'winter') {
+            ctx.fillStyle = 'rgba(255,255,255,.68)';
+            for (let x = 16; x < WIDTH; x += 49) {
+                const y = (x * 11 + game.trackScroll * 1.2) % HEIGHT;
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5 + (x % 3), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            ctx.fillStyle = 'rgba(140,249,255,.7)';
+            for (let x = 18; x < WIDTH; x += 51) {
+                const y = (x * 9 + game.trackScroll * 1.4) % HEIGHT;
+                ctx.fillRect(x, y, 2, 2);
+            }
         }
 
         // The gravel bed and wooden sleepers make the route feel like a real railway.
-        ctx.fillStyle = '#b9a88b';
+        ctx.fillStyle = theme.bed;
         ctx.fillRect(280, 0, 400, HEIGHT);
-        ctx.fillStyle = 'rgba(77,76,64,.13)';
+        ctx.fillStyle = game.theme === 'winter' ? 'rgba(245,252,255,.19)' : 'rgba(30,32,41,.16)';
         for (let y = -64 + game.trackScroll; y < HEIGHT; y += 64) {
             ctx.fillRect(286, y, 388, 8);
         }
-        ctx.fillStyle = '#685d50';
+        ctx.fillStyle = theme.rail;
         ctx.fillRect(327, 0, 15, HEIGHT);
         ctx.fillRect(618, 0, 15, HEIGHT);
-        ctx.fillStyle = '#ddd0b1';
+        ctx.fillStyle = theme.railLight;
         ctx.fillRect(330, 0, 5, HEIGHT);
         ctx.fillRect(621, 0, 5, HEIGHT);
         ctx.fillStyle = 'rgba(255,255,255,.16)';
@@ -429,13 +526,14 @@
         // Scenery scrolls more slowly than the track for a gentle parallax effect.
         for (const tree of scenery) {
             const y = (tree.y + game.trackScroll * .55) % (HEIGHT + 50) - 25;
-            drawPine(tree.x, y, tree.size, tree.shade);
+            if (game.theme === 'sunset') drawCactus(tree.x, y, tree.size);
+            else drawPine(tree.x, y, tree.size, tree.shade);
         }
         const shade = ctx.createLinearGradient(0, 0, WIDTH, 0);
-        shade.addColorStop(0, 'rgba(30,87,69,.13)');
+        shade.addColorStop(0, theme.edgeShade);
         shade.addColorStop(.25, 'transparent');
         shade.addColorStop(.75, 'transparent');
-        shade.addColorStop(1, 'rgba(30,87,69,.13)');
+        shade.addColorStop(1, theme.edgeShade);
         ctx.fillStyle = shade;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
     }
@@ -457,16 +555,17 @@
         ctx.beginPath();
         ctx.arc(x, y, 2.1, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = 'rgba(70,103,70,.32)';
+        ctx.fillStyle = activeTheme().trunk;
         ctx.fillRect(x - .5, y + 2, 1, 5);
     }
 
     function drawPine(x, y, size, shade) {
-        ctx.fillStyle = 'rgba(35,82,66,.15)';
+        const theme = activeTheme();
+        ctx.fillStyle = 'rgba(35,52,66,.16)';
         ctx.beginPath();
         ctx.ellipse(x + 3, y + size * .77, size * .5, size * .13, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = shade > .5 ? '#408d70' : '#367f68';
+        ctx.fillStyle = shade > .5 ? theme.trees[0] : theme.trees[1];
         ctx.beginPath();
         ctx.moveTo(x, y - size * .5);
         ctx.lineTo(x - size * .42, y + size * .12);
@@ -477,19 +576,51 @@
         ctx.lineTo(x + size * .42, y + size * .12);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = '#916e4d';
+        ctx.fillStyle = theme.trunk;
         ctx.fillRect(x - size * .055, y + size * .4, size * .11, size * .22);
+        if (game.theme === 'winter') {
+            ctx.fillStyle = 'rgba(247,253,255,.88)';
+            ctx.beginPath();
+            ctx.moveTo(x, y - size * .5);
+            ctx.lineTo(x - size * .2, y - size * .08);
+            ctx.lineTo(x + size * .02, y - size * .02);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    function drawCactus(x, y, size) {
+        const theme = activeTheme();
+        ctx.fillStyle = 'rgba(70,42,45,.16)';
+        ctx.beginPath();
+        ctx.ellipse(x + 3, y + size * .75, size * .36, size * .1, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = theme.trees[0];
+        ctx.lineWidth = Math.max(4, size * .17);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x, y + size * .52);
+        ctx.lineTo(x, y - size * .35);
+        ctx.moveTo(x, y + size * .05);
+        ctx.lineTo(x - size * .3, y + size * .05);
+        ctx.lineTo(x - size * .3, y - size * .18);
+        ctx.moveTo(x, y + size * .23);
+        ctx.lineTo(x + size * .28, y + size * .23);
+        ctx.lineTo(x + size * .28, y - size * .02);
+        ctx.stroke();
+        ctx.lineCap = 'butt';
     }
 
     function drawTrain(time) {
+        const palette = activeTheme().train;
         const x = train.x;
         const y = train.y + (game.running && !game.paused ? Math.sin(time * 13) * 1.2 : 0);
         const cx = x + train.width / 2;
         if (game.shield > 0) {
             const pulse = 1 + Math.sin(time * 8) * .045;
-            ctx.strokeStyle = 'rgba(131,255,219,.83)';
+            ctx.strokeStyle = activeTheme().shield;
             ctx.lineWidth = 3;
-            ctx.shadowColor = '#9af3d1';
+            ctx.shadowColor = activeTheme().shield;
             ctx.shadowBlur = 20;
             ctx.beginPath();
             ctx.ellipse(cx, y + train.height / 2, 48 * pulse, 53 * pulse, 0, 0, Math.PI * 2);
@@ -498,25 +629,25 @@
         }
         if (game.invulnerable > 0 && Math.floor(time * 18) % 2 === 0) return;
 
-        ctx.fillStyle = 'rgba(34,69,70,.23)';
+        ctx.fillStyle = 'rgba(34,49,59,.24)';
         ctx.beginPath();
         ctx.ellipse(cx, y + 71, 36, 8, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Wheel bogies and little brass details.
-        ctx.fillStyle = '#3e4850';
+        ctx.fillStyle = palette[7];
         roundedRect(x + 7, y + 29, 60, 36, 9);
         ctx.fill();
-        ctx.fillStyle = '#222f39';
+        ctx.fillStyle = palette[8];
         for (const wheelX of [x + 14, x + 60]) {
             for (const wheelY of [y + 39, y + 58]) {
                 ctx.beginPath();
                 ctx.arc(wheelX, wheelY, 8, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#b9c1b8';
+                ctx.strokeStyle = palette[6];
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                ctx.fillStyle = '#e5c875';
+                ctx.fillStyle = palette[6];
                 ctx.beginPath();
                 ctx.arc(wheelX, wheelY, 2, 0, Math.PI * 2);
                 ctx.fill();
@@ -524,38 +655,39 @@
             }
         }
 
-        ctx.fillStyle = '#d6534c';
+        ctx.fillStyle = palette[0];
         roundedRect(x + 9, y + 28, 56, 38, 9);
         ctx.fill();
-        ctx.fillStyle = '#f27661';
+        ctx.fillStyle = palette[1];
         roundedRect(x + 13, y + 31, 48, 26, 7);
         ctx.fill();
-        ctx.fillStyle = '#b84143';
+        ctx.fillStyle = palette[2];
         roundedRect(x + 18, y + 4, 38, 36, 14);
         ctx.fill();
-        ctx.fillStyle = '#ef765f';
+        ctx.fillStyle = palette[1];
         ctx.beginPath();
         ctx.ellipse(cx, y + 14, 19, 15, 0, Math.PI, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#233e50';
+        ctx.fillStyle = palette[3];
         roundedRect(x + 25, y + 7, 22, 15, 5);
         ctx.fill();
-        ctx.fillStyle = '#bfe9e7';
+        ctx.fillStyle = palette[4];
         roundedRect(x + 28, y + 9, 16, 10, 3);
         ctx.fill();
-        ctx.fillStyle = '#ffd982';
+        ctx.fillStyle = palette[5];
         ctx.beginPath();
         ctx.arc(cx, y + 32, 5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#f4c965';
+        ctx.fillStyle = palette[6];
         roundedRect(x + 15, y + 63, 44, 7, 3);
         ctx.fill();
-        ctx.fillStyle = '#8f383a';
+        ctx.fillStyle = palette[2];
         roundedRect(x + 24, y + 25, 28, 5, 2);
         ctx.fill();
     }
 
     function drawRock(item) {
+        const palette = activeTheme().rock;
         const x = item.x;
         const y = item.y;
         const size = item.size;
@@ -563,8 +695,8 @@
         ctx.beginPath();
         ctx.ellipse(x + size / 2, y + size * .91, size * .5, size * .13, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#727f83';
-        ctx.strokeStyle = '#59696d';
+        ctx.fillStyle = palette[0];
+        ctx.strokeStyle = palette[1];
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x + size * .07, y + size * .79);
@@ -577,7 +709,7 @@
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-        ctx.strokeStyle = 'rgba(237,244,225,.38)';
+        ctx.strokeStyle = palette[2];
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x + size * .23, y + size * .43);
@@ -591,16 +723,17 @@
     }
 
     function drawStar(item, time) {
+        const palette = activeTheme();
         const cx = item.x + item.size / 2;
         const cy = item.y + item.size / 2;
         const radius = item.size * (.39 + Math.sin(time * 7 + item.x) * .025);
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(time * .65);
-        ctx.shadowColor = '#ffdc75';
+        ctx.shadowColor = palette.star;
         ctx.shadowBlur = 17;
-        ctx.fillStyle = '#ffd15e';
-        ctx.strokeStyle = '#fff0ae';
+        ctx.fillStyle = palette.star;
+        ctx.strokeStyle = palette.starLight;
         ctx.lineWidth = 2;
         ctx.beginPath();
         for (let i = 0; i < 10; i++) {
@@ -664,6 +797,10 @@
     }
 
     window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !elements.themeScreen.classList.contains('is-hidden')) {
+            closeThemePicker();
+            return;
+        }
         const direction = keyDirection(event.key);
         if (direction) {
             keys.add(direction);
@@ -713,7 +850,21 @@
     elements.resumeButton.addEventListener('click', () => togglePause(false));
     elements.pauseButton.addEventListener('click', () => togglePause());
     elements.soundButton.addEventListener('click', () => setSound(!game.soundOn));
+    elements.themeButton.addEventListener('click', openThemePicker);
+    elements.chooseThemeButton.addEventListener('click', openThemePicker);
+    elements.closeThemeButton.addEventListener('click', closeThemePicker);
+    elements.themeScreen.addEventListener('click', (event) => {
+        if (event.target === elements.themeScreen) closeThemePicker();
+    });
+    document.querySelectorAll('[data-theme-choice]').forEach((button) => {
+        button.addEventListener('click', () => {
+            applyTheme(button.dataset.themeChoice);
+            showToast(`${activeTheme().name} selected`, activeTheme().star);
+            closeThemePicker();
+        });
+    });
     setSound(game.soundOn);
+    applyTheme(game.theme);
     updateHud();
 
     const resizeCanvas = () => {

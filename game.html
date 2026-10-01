@@ -20,6 +20,9 @@
                 <button class="icon-button" id="soundButton" type="button" aria-label="Turn sound off" title="Toggle sound">
                     <span id="soundIcon" aria-hidden="true">♫</span><span class="button-label">Sound on</span>
                 </button>
+                <button class="icon-button theme-button" id="themeButton" type="button" aria-haspopup="dialog" aria-controls="themeScreen" title="Choose a game theme">
+                    <span id="themeIcon" aria-hidden="true">🌿</span><span class="button-label" id="themeButtonLabel">Meadow</span>
+                </button>
                 <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause (P or Space)" disabled>
                     <span id="pauseIcon" aria-hidden="true">Ⅱ</span><span class="button-label">Pause</span>
                 </button>
@@ -31,6 +34,7 @@
                 <p class="eyebrow">ALL ABOARD, ADVENTURER</p>
                 <h1>Keep the good times <span>rolling.</span></h1>
                 <p class="intro-copy">Dodge the rocky track, scoop up shiny stars, and see how far your little engine can go.</p>
+                <p class="theme-selection-label">YOUR WORLD: <strong id="selectedThemeName">Sunny Meadow</strong> <span id="selectedThemeDescription">Wildflowers, rolling hills, and fresh green tracks.</span></p>
             </div>
             <div class="best-card" aria-label="Personal best">
                 <span class="best-star" aria-hidden="true">✦</span>
@@ -61,6 +65,7 @@
                             <i aria-hidden="true">✦</i>
                             <span class="quick-shield">✧<small>Power-ups give you a shield</small></span>
                         </div>
+                        <button class="choose-theme-link" id="chooseThemeButton" type="button"><span aria-hidden="true">🎨</span> Choose your world <span aria-hidden="true">→</span></button>
                         <button class="primary-button" id="startButton" type="button">Start your journey <span aria-hidden="true">→</span></button>
                         <small class="start-note">No rush. Press P or Space to pause any time.</small>
                     </div>
@@ -106,5 +111,32 @@
         </div>
         <footer class="page-footer">Made for curious conductors <span aria-hidden="true">♥</span> Keyboard and touch controls supported</footer>
     </main>
+    <div id="themeScreen" class="theme-screen is-hidden">
+        <section class="theme-dialog" role="dialog" aria-modal="true" aria-labelledby="themeHeading">
+            <button class="theme-close" id="closeThemeButton" type="button" aria-label="Close theme picker">×</button>
+            <p class="eyebrow">MAKE THIS RIDE YOURS</p>
+            <h2 id="themeHeading">Choose your world</h2>
+            <p class="theme-intro">Pick a favorite. The train, track, and scenery all change with it.</p>
+            <div class="theme-options" role="group" aria-label="Game themes">
+                <button class="theme-option" type="button" data-theme-choice="meadow" aria-pressed="true">
+                    <span class="theme-art meadow-art" aria-hidden="true"><i>☀</i><b></b><em></em></span>
+                    <span class="theme-option-name">Sunny Meadow</span><span class="theme-option-copy">Wildflower country</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="winter" aria-pressed="false">
+                    <span class="theme-art winter-art" aria-hidden="true"><i>❄</i><b></b><em></em></span>
+                    <span class="theme-option-name">Frosty Peaks</span><span class="theme-option-copy">A snowy mountain run</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="sunset" aria-pressed="false">
+                    <span class="theme-art sunset-art" aria-hidden="true"><i>☼</i><b></b><em></em></span>
+                    <span class="theme-option-name">Golden Sunset</span><span class="theme-option-copy">Warm desert skies</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="neon" aria-pressed="false">
+                    <span class="theme-art neon-art" aria-hidden="true"><i>✦</i><b></b><em></em></span>
+                    <span class="theme-option-name">Neon Night</span><span class="theme-option-copy">Electric after-dark rails</span>
+                </button>
+            </div>
+            <p class="theme-saved-note"><span aria-hidden="true">✓</span> Your choice is saved for next time</p>
+        </section>
+    </div>
 </body>
 </html>
