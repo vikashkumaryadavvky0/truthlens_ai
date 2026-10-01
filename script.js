@@ -457,11 +457,12 @@
         ctx.arc(804, 88, 34, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,.52)';
-        for (const cloud of clouds) {
-            const x = (cloud.x - time * 4 + WIDTH + 120) % (WIDTH + 120) - 60;
-            drawCloud(x, cloud.y, cloud.size);
+        if (game.theme !== 'neon') {
+            for (const cloud of clouds) {
+                const x = (cloud.x - time * 4 + WIDTH + 120) % (WIDTH + 120) - 60;
+                drawCloud(x, cloud.y, cloud.size);
+            }
         }
-
         ctx.fillStyle = theme.ground;
         ctx.fillRect(0, 205, WIDTH, HEIGHT - 205);
         ctx.fillStyle = theme.farHill;
@@ -484,6 +485,7 @@
         ctx.closePath();
         ctx.fill();
         ctx.globalAlpha = 1;
+        drawLandmarks(time);
 
         if (game.theme === 'meadow' || game.theme === 'sunset') {
             for (let x = 18; x < WIDTH; x += 37) {
@@ -536,6 +538,145 @@
         shade.addColorStop(1, theme.edgeShade);
         ctx.fillStyle = shade;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+
+    function drawLandmarks(time) {
+        if (game.theme === 'winter') {
+            // Layered snowy peaks sit behind the lower foothills.
+            const peaks = [
+                { x: -35, y: 228, w: 230, h: 187 },
+                { x: 92, y: 250, w: 250, h: 142 },
+                { x: 205, y: 220, w: 250, h: 190 },
+                { x: 405, y: 254, w: 230, h: 142 },
+                { x: 585, y: 224, w: 260, h: 190 },
+                { x: 790, y: 250, w: 230, h: 155 }
+            ];
+            peaks.forEach((peak, index) => {
+                ctx.fillStyle = index % 2 ? '#91b4ca' : '#7fabc5';
+                ctx.beginPath();
+                ctx.moveTo(peak.x, peak.y);
+                ctx.lineTo(peak.x + peak.w * .5, peak.y - peak.h);
+                ctx.lineTo(peak.x + peak.w, peak.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#f5fbff';
+                ctx.beginPath();
+                ctx.moveTo(peak.x + peak.w * .34, peak.y - peak.h * .33);
+                ctx.lineTo(peak.x + peak.w * .5, peak.y - peak.h);
+                ctx.lineTo(peak.x + peak.w * .68, peak.y - peak.h * .35);
+                ctx.lineTo(peak.x + peak.w * .55, peak.y - peak.h * .43);
+                ctx.lineTo(peak.x + peak.w * .48, peak.y - peak.h * .32);
+                ctx.lineTo(peak.x + peak.w * .42, peak.y - peak.h * .43);
+                ctx.closePath();
+                ctx.fill();
+            });
+        } else if (game.theme === 'sunset') {
+            // Flat-topped mesas frame the desert route.
+            const mesas = [
+                { x: -25, y: 233, w: 190, h: 73 },
+                { x: 90, y: 216, w: 235, h: 96 },
+                { x: 652, y: 226, w: 190, h: 77 },
+                { x: 788, y: 208, w: 222, h: 103 }
+            ];
+            mesas.forEach((mesa, index) => {
+                ctx.fillStyle = index % 2 ? '#a95f50' : '#c07857';
+                ctx.beginPath();
+                ctx.moveTo(mesa.x, mesa.y);
+                ctx.lineTo(mesa.x + 18, mesa.y);
+                ctx.lineTo(mesa.x + 31, mesa.y - mesa.h * .66);
+                ctx.lineTo(mesa.x + 48, mesa.y - mesa.h);
+                ctx.lineTo(mesa.x + mesa.w * .69, mesa.y - mesa.h);
+                ctx.lineTo(mesa.x + mesa.w * .77, mesa.y - mesa.h * .7);
+                ctx.lineTo(mesa.x + mesa.w - 7, mesa.y - mesa.h * .68);
+                ctx.lineTo(mesa.x + mesa.w, mesa.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,218,155,.42)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(mesa.x + 50, mesa.y - mesa.h + 5);
+                ctx.lineTo(mesa.x + mesa.w * .68, mesa.y - mesa.h + 5);
+                ctx.stroke();
+            });
+        } else if (game.theme === 'neon') {
+            // A layered city silhouette with glowing windows makes this a night ride.
+            const buildings = [
+                [12, 78, 116], [79, 115, 152], [174, 74, 102], [226, 104, 137],
+                [704, 82, 110], [764, 122, 159], [855, 75, 105], [906, 99, 132]
+            ];
+            ctx.fillStyle = '#28264e';
+            buildings.forEach(([x, width, height], index) => {
+                ctx.fillRect(x, 294 - height, width, height);
+                ctx.fillStyle = index % 2 ? '#514071' : '#39335f';
+                ctx.fillRect(x + width * .28, 294 - height - 13, width * .42, 13);
+                ctx.fillStyle = '#28264e';
+                for (let wy = 310 - height; wy < 285; wy += 22) {
+                    for (let wx = x + 12; wx < x + width - 7; wx += 22) {
+                        ctx.fillStyle = (wx + wy) % 3 ? 'rgba(140,249,255,.72)' : 'rgba(255,136,219,.8)';
+                        ctx.fillRect(wx, wy, 6, 9);
+                    }
+                }
+                ctx.fillStyle = '#28264e';
+            });
+            ctx.strokeStyle = 'rgba(140,249,255,.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 295);
+            ctx.lineTo(WIDTH, 295);
+            ctx.stroke();
+            ctx.fillStyle = '#fff0a9';
+            for (let i = 0; i < 34; i++) {
+                const x = (i * 173 + 41) % WIDTH;
+                const y = 18 + ((i * 79) % 143);
+                const pulse = .45 + (Math.sin(time * 2 + i) + 1) * .25;
+                ctx.globalAlpha = pulse;
+                ctx.fillRect(x, y, i % 4 === 0 ? 3 : 2, i % 4 === 0 ? 3 : 2);
+            }
+            ctx.globalAlpha = 1;
+        } else {
+            // A tiny windmill and a winding stream make the meadow its own destination.
+            ctx.fillStyle = 'rgba(71,137,160,.46)';
+            ctx.beginPath();
+            ctx.moveTo(0, 324);
+            ctx.bezierCurveTo(115, 286, 174, 354, 282, 318);
+            ctx.lineTo(282, 342);
+            ctx.bezierCurveTo(174, 378, 115, 310, 0, 348);
+            ctx.closePath();
+            ctx.fill();
+            drawWindmill(130, 206, time);
+        }
+    }
+
+    function drawWindmill(x, y, time) {
+        ctx.fillStyle = '#f3edda';
+        ctx.beginPath();
+        ctx.moveTo(x - 13, y + 61);
+        ctx.lineTo(x - 8, y + 8);
+        ctx.lineTo(x + 8, y + 8);
+        ctx.lineTo(x + 13, y + 61);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#a67c56';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(x, y + 8);
+        ctx.rotate(time * .22);
+        ctx.strokeStyle = '#f8f3df';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        for (let blade = 0; blade < 4; blade++) {
+            ctx.rotate(Math.PI / 2);
+            ctx.beginPath();
+            ctx.moveTo(0, -2);
+            ctx.lineTo(0, -34);
+            ctx.stroke();
+        }
+        ctx.restore();
+        ctx.fillStyle = '#c7955f';
+        ctx.beginPath();
+        ctx.arc(x, y + 8, 5, 0, Math.PI * 2);
+        ctx.fill();
     }
 
     function drawCloud(x, y, size) {

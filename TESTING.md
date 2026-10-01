@@ -13,6 +13,7 @@ The game has no build step or automated test suite. Verify it in a modern browse
 - The sound control toggles synthesized effects, and the touch direction buttons steer while held.
 - The saved personal best survives a page reload.
 - Open the theme picker before play; select Sunny Meadow, Frosty Peaks, Golden Sunset, or Neon Night and verify the locomotive, sky, ground, track, and interface change.
+- Verify the world landmarks are distinct: the meadow stream and windmill, snowy mountain peaks and snow-topped trees, desert mesas and cacti, or neon city skyline and starfield.
 - Change theme during a run; gameplay should pause safely and retain the current run when resuming.
 - The selected world remains selected after reloading.
 - At narrow viewport widths the game, HUD, and touch controls remain visible and usable.
@@ -25,6 +26,7 @@ The game has no build step or automated test suite. Verify it in a modern browse
 - Simulated right-arrow input moved the train sprite to the right.
 - The touch direction controls were present in the page.
 - Selected each theme and confirmed the canvas colors, theme label, active-button state, and saved preference changed.
+- Confirmed that sampled canvas colors differ between all four themes and that the selected theme persisted after a page reload.
 - Changed themes during a run; the run paused, retained its state, and resumed successfully.
 
 Star collection, shield protection, sound playback, and small-screen behavior should also be tried in a browser as part of manual playtesting.

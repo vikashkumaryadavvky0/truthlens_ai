@@ -172,6 +172,7 @@ kbd { width: 23px; height: 23px; display: inline-grid; place-items: center; colo
 .theme-option:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.3); }
 .theme-option[aria-pressed="true"] { border-color: var(--mint); background: color-mix(in srgb, var(--mint) 10%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--mint) 38%, transparent); }
 .theme-art { position: relative; display: block; height: 76px; margin-bottom: 9px; overflow: hidden; border-radius: 8px; }
+.theme-art::before { position: absolute; z-index: 1; right: 0; bottom: 24px; left: 0; height: 48px; content: ''; pointer-events: none; }
 .theme-art i { position: absolute; top: 8px; right: 12px; z-index: 1; color: #fff0ae; font-size: 18px; font-style: normal; }
 .theme-art b { position: absolute; right: -12px; bottom: 10px; left: -12px; height: 35px; border-radius: 50% 45% 0 0; background: #5b9b7b; transform: rotate(-3deg); }
 .theme-art em { position: absolute; right: -5px; bottom: -3px; left: -5px; height: 23px; border-top: 3px solid rgba(255,255,255,.72); background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(71,54,44,.75) 19px 23px), #947d65; transform: rotate(-2deg); }
@@ -179,14 +180,17 @@ kbd { width: 23px; height: 23px; display: inline-grid; place-items: center; colo
 .meadow-art b { background: #659b69; }
 .winter-art { background: linear-gradient(#8cb8dc, #e2eff5 70%); }
 .winter-art b { background: #f3f7f5; }
+.winter-art::before { background: #779db8; clip-path: polygon(0 100%, 12% 40%, 26% 75%, 45% 0, 63% 68%, 79% 24%, 100% 100%); }
 .winter-art em { border-top-color: #d6f4ff; background-color: #748c9f; }
 .winter-art i { color: white; }
 .sunset-art { background: linear-gradient(#f1a26e, #f8d38e 72%); }
 .sunset-art b { background: #b87455; }
+.sunset-art::before { bottom: 22px; height: 42px; background: #ae6655; clip-path: polygon(0 100%, 8% 100%, 17% 42%, 24% 42%, 31% 0, 70% 0, 77% 64%, 93% 64%, 100% 100%); }
 .sunset-art em { background-color: #705546; border-top-color: #ffe1a0; }
 .sunset-art i { color: #ffe3a1; }
-.neon-art { background: linear-gradient(#28234d, #754a89 72%); }
+.neon-art { background: linear-gradient(#28234d, #5f4789 72%); }
 .neon-art b { background: #453368; }
+.neon-art::before { bottom: 21px; height: 43px; background: repeating-linear-gradient(90deg, #302b59 0 13px, #514078 13px 17px, #302b59 17px 24px); clip-path: polygon(0 34%, 18% 34%, 18% 4%, 37% 4%, 37% 44%, 55% 44%, 55% 0, 73% 0, 73% 28%, 88% 28%, 88% 15%, 100% 15%, 100% 100%, 0 100%); }
 .neon-art em { background-color: #292a45; border-top-color: #8cf9ff; box-shadow: 0 -2px 12px rgba(140,249,255,.55); }
 .neon-art i { color: #ff88db; }
 .theme-option-name, .theme-option-copy { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

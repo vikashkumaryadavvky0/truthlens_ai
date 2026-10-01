@@ -20,12 +20,12 @@ Steer the train around falling rocks and trees. Collect glowing stars for 100 po
 
 ## Worlds
 
-- **Sunny Meadow** - green hills, flowers, and a cheerful red locomotive
-- **Frosty Peaks** - snowy scenery, icy rails, and a blue engine
-- **Golden Sunset** - warm desert skies, cacti, and copper-colored tracks
-- **Neon Night** - violet night scenery, glowing rails, and an electric-aqua train
+- **Sunny Meadow** - rolling green hills, a winding stream, wildflowers, a spinning windmill, and a cheerful red locomotive
+- **Frosty Peaks** - layered snow-capped mountains, falling snow, frosted pines, icy rails, and a blue engine
+- **Golden Sunset** - desert mesas, a warm amber sky, cacti, copper tracks, and a sunset-colored engine
+- **Neon Night** - a violet starfield, glowing city skyline and rails, and an electric-aqua train
 
-The selected world is saved locally, so it remains selected the next time you play.
+Every world is a hand-drawn canvas adventure with its own landscape, atmosphere, track colors, train livery, and interface accents. Choose one from the palette button or the start screen; your selection is saved locally, so it remains selected the next time you play.
 
 Your best score and sound preference are saved locally in your browser. Sound effects are synthesized with the Web Audio API; there are no audio or image downloads.
 
