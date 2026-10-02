@@ -65,9 +65,19 @@
                             <i aria-hidden="true">✦</i>
                             <span class="quick-shield">✧<small>Power-ups give you a shield</small></span>
                         </div>
+                        <div class="mode-select" role="group" aria-label="Choose a game mode">
+                            <button type="button" class="mode-option is-selected" data-mode="solo" aria-pressed="true"><strong>Solo Run</strong><small>One conductor, one train</small></button>
+                            <button type="button" class="mode-option" data-mode="crew" aria-pressed="false"><strong>Dispatcher Crew</strong><small>Drive + route scheduled trains</small></button>
+                            <button type="button" class="mode-option" data-mode="career" aria-pressed="false"><strong>Career &amp; Story</strong><small>Timetables, speed limits, achievements</small></button>
+                        </div>
+                        <div id="careerPicker" class="career-picker is-hidden">
+                            <label for="missionSelect">STORY MISSION <span id="missionUnlockCount">1 / 3 unlocked</span></label>
+                            <select id="missionSelect"></select>
+                            <p id="missionBrief"></p>
+                        </div>
                         <button class="choose-theme-link" id="chooseThemeButton" type="button"><span aria-hidden="true">🎨</span> Choose your world <span aria-hidden="true">→</span></button>
                         <button class="primary-button" id="startButton" type="button">Start your journey <span aria-hidden="true">→</span></button>
-                        <small class="start-note">No rush. Press P or Space to pause any time.</small>
+                        <small class="start-note" id="modeInstructions">No rush. Press P or Space to pause any time.</small>
                     </div>
                 </div>
                 <div id="pauseScreen" class="game-overlay is-hidden">
@@ -83,11 +93,12 @@
                     <div class="overlay-card compact-card">
                         <span class="overlay-symbol" aria-hidden="true">✦</span>
                         <p class="eyebrow">WHAT A RIDE</p>
-                        <h2>Journey complete!</h2>
+                        <h2 id="resultHeading">Journey complete!</h2>
                         <p class="final-distance">You travelled <strong id="finalScore">0</strong> points</p>
+                        <p id="careerResult" class="career-result is-hidden"></p>
                         <div class="result-stats">
-                            <span><small>STARS COLLECTED</small><strong id="starsCollected">0</strong></span>
-                            <span><small>BEST STREAK</small><strong id="maxStreak">0</strong></span>
+                            <span><small id="resultFirstLabel">STARS COLLECTED</small><strong id="starsCollected">0</strong></span>
+                            <span><small id="resultSecondLabel">BEST STREAK</small><strong id="maxStreak">0</strong></span>
                         </div>
                         <button class="primary-button" id="restartButton" type="button">Ride again <span aria-hidden="true">↻</span></button>
                     </div>
@@ -101,6 +112,25 @@
 
         <div class="below-game">
             <div class="tip"><span class="tip-icon" aria-hidden="true">✧</span><p><strong>Little tip</strong><br>Stars give you a short shield, so grab one before the track gets busy.</p></div>
+            <section id="dispatcherConsole" class="dispatcher-console is-hidden" aria-label="Dispatcher signal console">
+                <div class="dispatcher-heading"><span><strong>Signal desk</strong><small id="dispatcherAssignment">Driver: Player 1 · Dispatcher: Player 2</small></span><button id="swapRolesButton" type="button" class="swap-button" title="Swap player roles">⇄ Swap roles</button></div>
+                <div class="dispatch-request" aria-live="polite"><span class="request-icon" aria-hidden="true">🚦</span><span><small id="requestLabel">NEXT ARRIVAL</small><strong id="dispatchMessage">Waiting for a scheduled train…</strong></span><span id="dispatchTimer" class="dispatch-timer">--</span></div>
+                <div class="signal-buttons" role="group" aria-label="Route an arriving train">
+                    <button class="signal-button" id="routeLeftButton" data-route="left" type="button" aria-pressed="false"><span class="signal-lamp" aria-hidden="true"></span><strong>Track A</strong><small id="trackALabel">Left branch</small><kbd id="trackAKey">←</kbd></button>
+                    <button class="signal-button" id="routeRightButton" data-route="right" type="button" aria-pressed="false"><span class="signal-lamp" aria-hidden="true"></span><strong>Track B</strong><small id="trackBLabel">Right branch</small><kbd id="trackBKey">→</kbd></button>
+                </div>
+                <p class="dispatcher-tip">Dispatcher: route before the train reaches the junction. Driver: dodge hazards as usual.</p>
+            </section>
+            <section id="careerConsole" class="career-console is-hidden" aria-label="Career mission progress">
+                <div class="career-heading"><span><strong id="careerMissionTitle">Mission</strong><small id="careerMissionObjective">Reach the destination on schedule.</small></span><span class="career-clock"><small>TIMETABLE</small><strong id="careerTimer">00:00</strong></span></div>
+                <div class="career-meters">
+                    <div><span>SPEED</span><strong id="careerSpeed">0 mph</strong></div>
+                    <div><span>STRICT LIMIT</span><strong id="careerSpeedLimit">50 mph</strong></div>
+                    <div><span>ARRIVAL TARGET</span><strong id="careerTarget">00000</strong></div>
+                </div>
+                <div class="career-progress"><span id="careerProgress"></span></div>
+                <p id="careerAchievement" class="career-achievement">Achievement: arrive on time and meet the mission brief.</p>
+            </section>
             <div class="touch-controls" aria-label="Touch movement controls">
                 <button type="button" data-direction="up" aria-label="Move up">↑</button>
                 <button type="button" data-direction="left" aria-label="Move left">←</button>

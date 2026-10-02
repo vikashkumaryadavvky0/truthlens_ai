@@ -15,6 +15,34 @@
         weatherIcon: document.getElementById('weatherIcon'),
         weatherName: document.getElementById('weatherName'),
         weatherEffect: document.getElementById('weatherEffect'),
+        dispatcherConsole: document.getElementById('dispatcherConsole'),
+        careerConsole: document.getElementById('careerConsole'),
+        belowGame: document.querySelector('.below-game'),
+        dispatcherAssignment: document.getElementById('dispatcherAssignment'),
+        dispatchMessage: document.getElementById('dispatchMessage'),
+        dispatchTimer: document.getElementById('dispatchTimer'),
+        requestLabel: document.getElementById('requestLabel'),
+        routeLeftButton: document.getElementById('routeLeftButton'),
+        routeRightButton: document.getElementById('routeRightButton'),
+        routeButtons: document.querySelectorAll('[data-route]'),
+        trackAKey: document.getElementById('trackAKey'),
+        trackBKey: document.getElementById('trackBKey'),
+        swapRolesButton: document.getElementById('swapRolesButton'),
+        modeInstructions: document.getElementById('modeInstructions'),
+        careerPicker: document.getElementById('careerPicker'),
+        missionSelect: document.getElementById('missionSelect'),
+        missionBrief: document.getElementById('missionBrief'),
+        missionUnlockCount: document.getElementById('missionUnlockCount'),
+        careerMissionTitle: document.getElementById('careerMissionTitle'),
+        careerMissionObjective: document.getElementById('careerMissionObjective'),
+        careerTimer: document.getElementById('careerTimer'),
+        careerSpeed: document.getElementById('careerSpeed'),
+        careerSpeedLimit: document.getElementById('careerSpeedLimit'),
+        careerTarget: document.getElementById('careerTarget'),
+        careerProgress: document.getElementById('careerProgress'),
+        careerAchievement: document.getElementById('careerAchievement'),
+        careerResult: document.getElementById('careerResult'),
+        resultHeading: document.getElementById('resultHeading'),
         toast: document.getElementById('toast'),
         start: document.getElementById('startScreen'),
         pause: document.getElementById('pauseScreen'),
@@ -22,6 +50,8 @@
         finalScore: document.getElementById('finalScore'),
         stars: document.getElementById('starsCollected'),
         streak: document.getElementById('maxStreak'),
+        resultFirstLabel: document.getElementById('resultFirstLabel'),
+        resultSecondLabel: document.getElementById('resultSecondLabel'),
         startButton: document.getElementById('startButton'),
         restartButton: document.getElementById('restartButton'),
         pauseButton: document.getElementById('pauseButton'),
@@ -36,7 +66,8 @@
         themeDescription: document.getElementById('selectedThemeDescription'),
         themeScreen: document.getElementById('themeScreen'),
         closeThemeButton: document.getElementById('closeThemeButton'),
-        chooseThemeButton: document.getElementById('chooseThemeButton')
+        chooseThemeButton: document.getElementById('chooseThemeButton'),
+        modeButtons: document.querySelectorAll('[data-mode]')
     };
 
     const themes = {
@@ -86,6 +117,42 @@
         storm: { name: 'Thunderstorm', icon: '⛈', effect: 'Storm: gusts push the train; wet rails make braking slower.' }
     };
 
+    const careerMissions = [
+        {
+            id: 'meadow-mail',
+            title: 'Mission 1 · Meadow Mail Run',
+            shortTitle: 'Meadow Mail Run',
+            description: 'Deliver the village post before the morning timetable closes.',
+            objective: 'Reach 280 points and clear 3 hazards before the clock runs out.',
+            target: 280,
+            hazards: 3,
+            timeLimit: 48,
+            speedLimit: 42
+        },
+        {
+            id: 'alpine-express',
+            title: 'Mission 2 · Alpine Express',
+            shortTitle: 'Alpine Express',
+            description: 'Carry mountain passengers safely through the high-pass schedule.',
+            objective: 'Reach 500 points and clear 5 hazards before the clock runs out.',
+            target: 500,
+            hazards: 5,
+            timeLimit: 76,
+            speedLimit: 48
+        },
+        {
+            id: 'desert-special',
+            title: 'Mission 3 · Desert Sunset Special',
+            shortTitle: 'Desert Sunset Special',
+            description: 'Get the sunset express to its final station on a strict timetable.',
+            objective: 'Reach 720 points and clear 7 hazards before the clock runs out.',
+            target: 720,
+            hazards: 7,
+            timeLimit: 108,
+            speedLimit: 52
+        }
+    ];
+
     const game = {
         running: false,
         paused: false,
@@ -96,6 +163,23 @@
         bestStreak: 0,
         best: readNumber('little-locomotive-best'),
         theme: readTheme(),
+        mode: 'solo',
+        missionIndex: 0,
+        careerTimeLeft: 0,
+        careerSpeed: 0,
+        careerSpeeding: false,
+        careerDamaged: false,
+        careerCleared: 0,
+        careerCompleted: false,
+        boosting: false,
+        careerUnlocked: 1,
+        rolesSwapped: false,
+        routeChoice: 'left',
+        traffic: null,
+        dispatchClock: 1.5,
+        dispatchTimer: 0,
+        dispatches: 0,
+        dispatchMisses: 0,
         weather: 'clear',
         weatherClock: 8,
         weatherDuration: 8,
@@ -226,6 +310,116 @@
             elements.weatherName.textContent = weather.name;
             elements.weatherEffect.textContent = weather.effect;
         }
+        updateDispatcherHud();
+        updateCareerHud();
+    }
+
+    function updateDispatcherHud() {
+        const active = game.mode === 'crew' && game.running;
+        elements.dispatcherConsole.classList.toggle('is-hidden', !active);
+        elements.belowGame.classList.toggle('has-dispatcher', active);
+        if (!active) return;
+        const driverKeys = game.rolesSwapped ? '← →' : 'W A S D';
+        const dispatcherKeys = game.rolesSwapped ? 'A / D' : '← / →';
+        elements.dispatcherAssignment.textContent = game.rolesSwapped
+            ? 'Driver: Player 2 · Dispatcher: Player 1'
+            : 'Driver: Player 1 · Dispatcher: Player 2';
+        elements.trackAKey.textContent = game.rolesSwapped ? 'A' : '←';
+        elements.trackBKey.textContent = game.rolesSwapped ? 'D' : '→';
+        elements.dispatcherConsole.setAttribute(
+            'aria-label',
+            `Dispatcher signal console. Driver ${driverKeys}; dispatcher ${dispatcherKeys}.`
+        );
+        const requestActive = Boolean(game.traffic && !game.traffic.locked);
+        elements.requestLabel.textContent = requestActive ? 'TRAIN APPROACHING · ROUTE IT' : 'NEXT ARRIVAL';
+        if (requestActive) {
+            elements.dispatchMessage.textContent = `Train ${game.traffic.id} needs Track ${game.traffic.target === 'left' ? 'A' : 'B'}`;
+            elements.dispatchTimer.textContent = `${Math.max(0, game.dispatchTimer).toFixed(1)}s`;
+        } else if (game.traffic) {
+            elements.dispatchMessage.textContent = `Train ${game.traffic.id} is on Track ${game.traffic.route === 'left' ? 'A' : 'B'}`;
+            elements.dispatchTimer.textContent = 'ROUTED';
+        } else {
+            elements.dispatchMessage.textContent = 'Waiting for a scheduled train…';
+            elements.dispatchTimer.textContent = `${Math.max(0, game.dispatchClock).toFixed(1)}s`;
+        }
+        elements.routeLeftButton.setAttribute('aria-pressed', String(game.routeChoice === 'left'));
+        elements.routeRightButton.setAttribute('aria-pressed', String(game.routeChoice === 'right'));
+        elements.routeLeftButton.disabled = !requestActive;
+        elements.routeRightButton.disabled = !requestActive;
+    }
+
+    function missionComplete(mission) {
+        return readSetting(`little-locomotive-${mission.id}-complete`, false);
+    }
+
+    function loadCareerProgress() {
+        game.careerUnlocked = Math.max(1, Math.min(careerMissions.length, Math.floor(readNumber('little-locomotive-career-unlocked') || 1)));
+        elements.missionSelect.replaceChildren();
+        careerMissions.forEach((mission, index) => {
+            const option = document.createElement('option');
+            option.value = String(index);
+            const completed = missionComplete(mission);
+            option.textContent = `${index + 1}. ${mission.shortTitle}${completed ? ' · ACHIEVED' : ''}`;
+            option.disabled = index >= game.careerUnlocked;
+            elements.missionSelect.append(option);
+        });
+        elements.missionSelect.value = String(Math.min(game.careerUnlocked - 1, careerMissions.length - 1));
+        updateMissionBrief();
+    }
+
+    function updateMissionBrief() {
+        game.missionIndex = Math.max(0, Math.min(careerMissions.length - 1, Number(elements.missionSelect.value) || 0));
+        const mission = careerMissions[game.missionIndex];
+        elements.missionBrief.textContent = `${mission.description} ${mission.objective} Limit: ${mission.speedLimit} mph · Timetable: ${mission.timeLimit}s.`;
+        elements.missionUnlockCount.textContent = `${game.careerUnlocked} / ${careerMissions.length} unlocked`;
+    }
+
+    function updateCareerHud() {
+        const active = game.mode === 'career' && game.running;
+        elements.careerConsole.classList.toggle('is-hidden', !active);
+        elements.belowGame.classList.toggle('has-career', active);
+        if (!active) return;
+        const mission = careerMissions[game.missionIndex];
+        const elapsedSpeed = Math.round(game.careerSpeed);
+        elements.careerMissionTitle.textContent = mission.shortTitle;
+        elements.careerMissionObjective.textContent = mission.objective;
+        const seconds = Math.max(0, Math.ceil(game.careerTimeLeft));
+        elements.careerTimer.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+        elements.careerSpeed.textContent = `${elapsedSpeed} mph`;
+        elements.careerSpeed.classList.toggle('speeding', game.careerSpeeding);
+        elements.careerSpeedLimit.textContent = `${mission.speedLimit} mph`;
+        elements.careerTarget.textContent = `${Math.min(mission.target, Math.floor(game.score)).toLocaleString()} / ${mission.target} · ${game.careerCleared}/${mission.hazards} clear`;
+        const distanceProgress = Math.min(1, game.score / mission.target);
+        const hazardProgress = Math.min(1, game.careerCleared / mission.hazards);
+        elements.careerProgress.style.width = `${(distanceProgress + hazardProgress) * 50}%`;
+        elements.careerAchievement.textContent = game.careerSpeeding
+            ? 'Speed-limit achievement lost. Keep the train below the cap to qualify.'
+            : game.careerDamaged
+                ? 'Flawless-arrival achievement requires an undamaged train.'
+                : `Achievement: arrive on time, clear ${mission.hazards} hazards, obey the speed limit, and keep all hearts.`;
+    }
+
+    function chooseMode(mode) {
+        game.mode = ['crew', 'career'].includes(mode) ? mode : 'solo';
+        elements.modeButtons.forEach((button) => {
+            const selected = button.dataset.mode === game.mode;
+            button.classList.toggle('is-selected', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+        elements.careerPicker.classList.toggle('is-hidden', game.mode !== 'career');
+        elements.start.classList.toggle('has-career-picker', game.mode === 'career');
+        elements.startButton.innerHTML = game.mode === 'crew'
+            ? 'Start Dispatcher Crew <span aria-hidden="true">→</span>'
+            : game.mode === 'career'
+                ? 'Start story mission <span aria-hidden="true">→</span>'
+                : 'Start your journey <span aria-hidden="true">→</span>';
+        elements.modeInstructions.textContent = game.mode === 'crew'
+            ? 'Player 1 drives with WASD. Player 2 routes trains with ← / →. Swap roles any time.'
+            : game.mode === 'career'
+                ? 'Drive with WASD/arrows. Hold Shift to boost, but any speeding forfeits the achievement.'
+                : 'No rush. Press P or Space to pause any time.';
+        updateDispatcherHud();
+        updateCareerHud();
     }
 
     function setStatus(message) {
@@ -274,6 +468,7 @@
 
     function startGame() {
         unlockAudio();
+        if (game.mode === 'career') updateMissionBrief();
         game.running = true;
         game.paused = false;
         game.score = 0;
@@ -293,6 +488,20 @@
         game.weatherDuration = 7;
         game.lightningTimer = 4;
         game.lightningFlash = 0;
+        game.rolesSwapped = false;
+        game.routeChoice = 'left';
+        game.traffic = null;
+        game.dispatchClock = 1.4;
+        game.dispatchTimer = 0;
+        game.dispatches = 0;
+        game.dispatchMisses = 0;
+        game.careerTimeLeft = game.mode === 'career' ? careerMissions[game.missionIndex].timeLimit : 0;
+        game.careerSpeed = 0;
+        game.careerSpeeding = false;
+        game.careerDamaged = false;
+        game.careerCleared = 0;
+        game.careerCompleted = false;
+        game.boosting = false;
         train.x = (WIDTH - train.width) / 2;
         train.y = HEIGHT - 132;
         train.vx = 0;
@@ -304,10 +513,13 @@
         elements.start.classList.add('is-hidden');
         elements.pause.classList.add('is-hidden');
         elements.over.classList.add('is-hidden');
+        elements.careerResult.classList.add('is-hidden');
         elements.pauseButton.disabled = false;
         elements.pauseIcon.textContent = 'Ⅱ';
         elements.pauseButton.setAttribute('aria-label', 'Pause game');
-        setStatus('Find your rhythm!');
+        setStatus(game.mode === 'career' ? `All aboard: ${careerMissions[game.missionIndex].shortTitle}!` : 'Find your rhythm!');
+        updateDispatcherHud();
+        updateCareerHud();
         updateHud();
         tone(523, .12);
         setTimeout(() => tone(659, .16), 100);
@@ -328,6 +540,146 @@
             showToast('☀ THE SKY IS CLEARING');
         }
         updateHud();
+    }
+
+    function setRoute(route) {
+        if (game.mode !== 'crew' || !['left', 'right'].includes(route)) return;
+        game.routeChoice = route;
+        if (game.traffic && !game.traffic.locked) game.traffic.route = route;
+        updateDispatcherHud();
+    }
+
+    function swapRoles() {
+        if (game.mode !== 'crew') return;
+        game.rolesSwapped = !game.rolesSwapped;
+        keys.clear();
+        touchKeys.clear();
+        updateDispatcherHud();
+        showToast(game.rolesSwapped ? 'ROLES SWAPPED · PLAYER 2 DRIVES' : 'ROLES SWAPPED · PLAYER 1 DRIVES', '#bfe0ff');
+        setStatus(game.rolesSwapped ? 'Player 2 has the controls.' : 'Player 1 has the controls.');
+    }
+
+    function spawnDispatchTrain() {
+        const trainId = game.dispatches + game.dispatchMisses + 1;
+        game.traffic = {
+            id: String(trainId).padStart(2, '0'),
+            y: -125,
+            size: 62,
+            speed: 158 + Math.min(game.score * .025, 25),
+            target: Math.random() < .5 ? 'left' : 'right',
+            route: game.routeChoice,
+            locked: false,
+            evaluated: false
+        };
+        game.dispatchTimer = (220 - game.traffic.y) / game.traffic.speed;
+        setStatus(`Scheduled train ${game.traffic.id} approaching!`);
+        updateDispatcherHud();
+    }
+
+    function dispatchTrainX(traffic) {
+        const startX = WIDTH / 2;
+        const endX = traffic.route === 'left' ? 399 : 561;
+        const progress = Math.max(0, Math.min(1, traffic.y / 220));
+        const eased = progress * progress * (3 - 2 * progress);
+        return startX + (endX - startX) * eased;
+    }
+
+    function updateDispatcher(delta) {
+        if (game.mode !== 'crew') return;
+        if (!game.traffic) {
+            game.dispatchClock -= delta;
+            if (game.dispatchClock <= 0) spawnDispatchTrain();
+            updateDispatcherHud();
+            return;
+        }
+
+        const traffic = game.traffic;
+        if (!traffic.locked) {
+            traffic.route = game.routeChoice;
+            traffic.y += traffic.speed * delta;
+            game.dispatchTimer = Math.max(0, (220 - traffic.y) / traffic.speed);
+            if (traffic.y >= 220) {
+                traffic.locked = true;
+                if (traffic.route === traffic.target) {
+                    game.dispatches++;
+                    game.score += 100;
+                    game.streak++;
+                    game.bestStreak = Math.max(game.bestStreak, game.streak);
+                    burst(dispatchTrainX(traffic) + 31, traffic.y + 30, '#91f2c0', 12);
+                    showToast(`TRAIN ${traffic.id} ROUTED · +100`, '#9af3d1');
+                    setStatus('Signal clear. Nice dispatch!');
+                    tone(659, .11);
+                    setTimeout(() => tone(784, .14), 90);
+                } else {
+                    game.dispatchMisses++;
+                    game.lives--;
+                    game.streak = 0;
+                    game.shake = .2;
+                    showToast(`WRONG SIGNAL · TRAIN ${traffic.id} DELAYED`, '#ffba8b');
+                    setStatus('Missed connection! Check the destination.');
+                    tone(185, .2, 'square', .025);
+                    updateHud();
+                    if (game.lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                }
+            }
+        } else {
+            traffic.y += traffic.speed * delta;
+            const trafficX = dispatchTrainX(traffic);
+            const trafficRect = { x: trafficX - 28, y: traffic.y + 8, size: 56, type: 'traffic' };
+            if (game.invulnerable <= 0 && overlaps(trafficRect)) {
+                game.dispatchMisses++;
+                game.lives--;
+                game.streak = 0;
+                game.invulnerable = 1.3;
+                game.shake = .25;
+                burst(train.x + train.width / 2, train.y + train.height / 2, '#ffb08a', 17);
+                showToast('TRAFFIC CONFLICT · WATCH YOUR TRAIN!', '#ffb08a');
+                setStatus('Train conflict! Keep the main line clear.');
+                traffic.y = HEIGHT + 31;
+                updateHud();
+                if (game.lives <= 0) {
+                    endGame();
+                    return;
+                }
+            }
+        }
+
+        if (traffic.y > HEIGHT + 30) {
+            game.traffic = null;
+            game.dispatchClock = 2.2 + Math.random() * 1.4;
+        }
+        updateDispatcherHud();
+    }
+
+    function finishCareerMission() {
+        const mission = careerMissions[game.missionIndex];
+        game.careerCompleted = true;
+        store(`little-locomotive-${mission.id}-complete`, true);
+        game.careerUnlocked = Math.max(game.careerUnlocked, Math.min(careerMissions.length, game.missionIndex + 2));
+        store('little-locomotive-career-unlocked', game.careerUnlocked);
+        loadCareerProgress();
+        endGame('success');
+    }
+
+    function updateCareer(delta) {
+        if (game.mode !== 'career') return;
+        game.careerTimeLeft -= delta;
+        const mission = careerMissions[game.missionIndex];
+        if (game.careerTimeLeft <= 0) {
+            endGame('timetable');
+            return;
+        }
+        if (game.score >= mission.target && game.careerCleared >= mission.hazards) {
+            if (game.careerSpeeding || game.careerDamaged) {
+                endGame('achievement');
+            } else {
+                finishCareerMission();
+            }
+            return;
+        }
     }
 
     function updateWeather(delta) {
@@ -371,11 +723,12 @@
         }
     }
 
-    function endGame() {
+    function endGame(careerFailure = '') {
         game.running = false;
         game.paused = false;
         keys.clear();
         touchKeys.clear();
+        game.boosting = false;
         if (game.score > game.best) {
             game.best = Math.floor(game.score);
             store('little-locomotive-best', game.best);
@@ -384,6 +737,32 @@
         elements.finalScore.textContent = Math.floor(game.score).toLocaleString();
         elements.stars.textContent = game.stars;
         elements.streak.textContent = game.bestStreak;
+        elements.careerResult.classList.toggle('is-hidden', game.mode !== 'career');
+        elements.resultHeading.textContent = game.mode === 'career' ? 'Mission report' : 'Journey complete!';
+        elements.resultFirstLabel.textContent = game.mode === 'crew' ? 'TRAINS ROUTED' : 'STARS COLLECTED';
+        elements.resultSecondLabel.textContent = game.mode === 'crew' ? 'MISSED SCHEDULES' : 'BEST STREAK';
+        elements.restartButton.innerHTML = 'Ride again <span aria-hidden="true">↻</span>';
+        if (game.mode === 'crew') {
+            elements.stars.textContent = game.dispatches;
+            elements.streak.textContent = game.dispatchMisses;
+        } else if (game.mode === 'career') {
+            elements.resultFirstLabel.textContent = 'MISSIONS UNLOCKED';
+            elements.resultSecondLabel.textContent = 'ENGINE HEALTH';
+            elements.stars.textContent = `${game.careerUnlocked} / ${careerMissions.length}`;
+            elements.streak.textContent = `${game.lives} / 3`;
+            elements.careerResult.textContent = game.careerCompleted
+                ? `Achievement earned: On-time, on-limit arrival! ${game.careerUnlocked < careerMissions.length ? 'The next story mission is unlocked.' : 'Campaign complete!'}`
+                : careerFailure === 'timetable'
+                    ? 'Timetable missed. Arrive before the countdown reaches zero.'
+                    : careerFailure === 'achievement'
+                        ? 'Arrival reached, but the achievement needs an undamaged train and no speeding.'
+                        : 'Mission ended early. Restart to try the timetable again.';
+            elements.restartButton.innerHTML = game.careerCompleted && game.careerUnlocked < careerMissions.length
+                ? 'Continue campaign <span aria-hidden="true">→</span>'
+                : game.careerCompleted
+                    ? 'Replay mission <span aria-hidden="true">↻</span>'
+                    : 'Retry mission <span aria-hidden="true">↻</span>';
+        }
         elements.over.classList.remove('is-hidden');
         elements.pauseButton.disabled = true;
         setStatus('What a lovely ride.');
@@ -469,6 +848,7 @@
             tone(390, .16, 'triangle');
         } else {
             game.lives--;
+            if (game.mode === 'career') game.careerDamaged = true;
             game.streak = 0;
             game.invulnerable = 1.25;
             game.shake = .24;
@@ -527,10 +907,26 @@
             dy *= Math.SQRT1_2;
         }
         const conditions = getDrivingConditions();
-        train.vx = approachVelocity(train.vx, dx * train.speed * conditions.speed, delta, conditions);
-        train.vy = approachVelocity(train.vy, dy * train.speed * conditions.speed, delta, conditions);
+        const missionLimit = game.mode === 'career' ? careerMissions[game.missionIndex].speedLimit / 60 : 1;
+        const driveSpeed = train.speed * conditions.speed * (game.mode === 'career' ? (game.boosting ? 1.2 : missionLimit) : 1);
+        train.vx = approachVelocity(train.vx, dx * driveSpeed, delta, conditions);
+        train.vy = approachVelocity(train.vy, dy * driveSpeed, delta, conditions);
         if (game.weather === 'storm') {
             train.vx += Math.sin(game.elapsed * 2.1) * 105 * delta;
+        }
+        if (game.mode === 'career') {
+            game.careerSpeed = Math.hypot(train.vx, train.vy) / train.speed * 60;
+            const speedLimit = careerMissions[game.missionIndex].speedLimit;
+            if (game.boosting && game.careerSpeed > speedLimit + 1) {
+                game.careerSpeeding = true;
+            } else if (!game.boosting && game.careerSpeed > speedLimit) {
+                const limiter = speedLimit / game.careerSpeed;
+                train.vx *= limiter;
+                train.vy *= limiter;
+                game.careerSpeed = speedLimit;
+            }
+        } else {
+            game.careerSpeed = Math.hypot(train.vx, train.vy) / train.speed * 60;
         }
         train.x += train.vx * delta;
         train.y += train.vy * delta;
@@ -557,10 +953,16 @@
                     game.score += 15;
                     game.streak++;
                     game.bestStreak = Math.max(game.bestStreak, game.streak);
+                    if (game.mode === 'career') game.careerCleared++;
                     setStatus(game.streak >= 5 ? `${game.streak} in a row! Lovely driving.` : 'Clear track. Nice work!');
                 }
             }
         }
+        updateCareerHud();
+        updateDispatcher(delta);
+        if (!game.running) return;
+        updateCareer(delta);
+        if (!game.running) return;
         for (let i = particles.length - 1; i >= 0; i--) {
             const particle = particles[i];
             particle.life -= delta;
@@ -576,6 +978,111 @@
     function roundedRect(x, y, width, height, radius) {
         ctx.beginPath();
         ctx.roundRect(x, y, width, height, radius);
+    }
+
+    function drawDispatcherTracks() {
+        if (game.mode !== 'crew') return;
+        const theme = activeTheme();
+        for (const route of ['left', 'right']) {
+            const targetX = route === 'left' ? 399 : 561;
+            const selected = game.routeChoice === route;
+            for (const offset of [-13, 13]) {
+                const path = () => {
+                    ctx.beginPath();
+                    ctx.moveTo(480 + offset * .35, 0);
+                    ctx.bezierCurveTo(480 + offset, 93, targetX + offset, 140, targetX + offset, 225);
+                    ctx.lineTo(targetX + offset, HEIGHT);
+                };
+                path();
+                ctx.strokeStyle = theme.bed;
+                ctx.lineWidth = 11;
+                ctx.stroke();
+                path();
+                ctx.strokeStyle = selected ? theme.railLight : theme.rail;
+                ctx.lineWidth = selected ? 4 : 3;
+                ctx.stroke();
+                if (selected) {
+                    path();
+                    ctx.strokeStyle = `${theme.star}88`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+            const signalX = targetX;
+            ctx.fillStyle = '#3d4c56';
+            roundedRect(signalX - 3, 167, 6, 39, 3);
+            ctx.fill();
+            ctx.fillStyle = '#263540';
+            roundedRect(signalX - 10, 157, 20, 24, 7);
+            ctx.fill();
+            ctx.fillStyle = selected ? '#63e59f' : '#c94e5d';
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = selected ? 14 : 5;
+            ctx.beginPath();
+            ctx.arc(signalX, 169, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            if (game.traffic && !game.traffic.locked && game.traffic.target === route) {
+                ctx.strokeStyle = '#ffe08a';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(signalX, 169, 10, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+    }
+
+    function drawDispatcherTrain(time) {
+        const traffic = game.traffic;
+        if (game.mode !== 'crew' || !traffic) return;
+        const centerX = dispatchTrainX(traffic);
+        const x = centerX - 27;
+        const y = traffic.y;
+        const theme = activeTheme();
+        const fill = traffic.target === 'left' ? theme.train[0] : '#417db7';
+        ctx.fillStyle = 'rgba(27,40,54,.23)';
+        ctx.beginPath();
+        ctx.ellipse(centerX, y + 67, 30, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#35434d';
+        roundedRect(x + 4, y + 20, 46, 39, 8);
+        ctx.fill();
+        ctx.fillStyle = fill;
+        roundedRect(x + 6, y + 20, 42, 36, 8);
+        ctx.fill();
+        ctx.fillStyle = theme.train[1];
+        roundedRect(x + 10, y + 4, 34, 30, 11);
+        ctx.fill();
+        ctx.fillStyle = theme.train[3];
+        roundedRect(x + 15, y + 8, 24, 12, 4);
+        ctx.fill();
+        ctx.fillStyle = theme.train[4];
+        roundedRect(x + 18, y + 10, 18, 8, 3);
+        ctx.fill();
+        ctx.fillStyle = theme.star;
+        ctx.beginPath();
+        ctx.arc(centerX, y + 31, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#303943';
+        for (const wheelX of [x + 13, x + 41]) {
+            ctx.beginPath();
+            ctx.arc(wheelX, y + 55, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        if (!traffic.locked) {
+            ctx.fillStyle = traffic.route === traffic.target ? '#164a36' : '#58343a';
+            roundedRect(x - 5, y + 69, 64, 18, 7);
+            ctx.fill();
+            ctx.fillStyle = '#f1f6ff';
+            ctx.font = '700 10px "DM Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`→ ${traffic.target === 'left' ? 'A' : 'B'}`, centerX, y + 81);
+        } else {
+            ctx.fillStyle = '#fff4ce';
+            ctx.font = '700 9px "DM Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`TRAIN ${traffic.id}`, centerX, y - 5);
+        }
     }
 
     function drawBackground(time) {
@@ -659,6 +1166,7 @@
         ctx.fillStyle = 'rgba(255,255,255,.16)';
         ctx.fillRect(342, 0, 3, HEIGHT);
         ctx.fillRect(630, 0, 3, HEIGHT);
+        drawDispatcherTracks();
 
         // Scenery scrolls more slowly than the track for a gentle parallax effect.
         for (const tree of scenery) {
@@ -1036,6 +1544,7 @@
             else if (item.type === 'tree') drawHazardTree(item);
             else drawRock(item);
         }
+        drawDispatcherTrain(time);
         for (const particle of particles) {
             ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
             ctx.fillStyle = particle.color;
@@ -1133,18 +1642,60 @@
     }
 
     function keyDirection(key) {
-        switch (key.toLowerCase()) {
-            case 'arrowleft': case 'a': return 'left';
-            case 'arrowright': case 'd': return 'right';
-            case 'arrowup': case 'w': return 'up';
-            case 'arrowdown': case 's': return 'down';
+        const normalized = key.toLowerCase();
+        if (game.mode !== 'crew') {
+            switch (normalized) {
+                case 'arrowleft': case 'a': return 'left';
+                case 'arrowright': case 'd': return 'right';
+                case 'arrowup': case 'w': return 'up';
+                case 'arrowdown': case 's': return 'down';
+                default: return null;
+            }
+        }
+        if (!game.rolesSwapped) {
+            switch (normalized) {
+                case 'a': return 'left';
+                case 'd': return 'right';
+                case 'w': return 'up';
+                case 's': return 'down';
+                default: return null;
+            }
+        }
+        switch (normalized) {
+            case 'arrowleft': return 'left';
+            case 'arrowright': return 'right';
+            case 'arrowup': return 'up';
+            case 'arrowdown': return 'down';
             default: return null;
         }
     }
 
+    function dispatcherRouteKey(key) {
+        if (game.mode !== 'crew') return null;
+        const normalized = key.toLowerCase();
+        if (!game.rolesSwapped) {
+            if (normalized === 'arrowleft') return 'left';
+            if (normalized === 'arrowright') return 'right';
+        } else {
+            if (normalized === 'a') return 'left';
+            if (normalized === 'd') return 'right';
+        }
+        return null;
+    }
+
     window.addEventListener('keydown', (event) => {
+        if (event.key === 'Shift' && game.mode === 'career' && game.running && !game.paused) {
+            game.boosting = true;
+            event.preventDefault();
+        }
         if (event.key === 'Escape' && !elements.themeScreen.classList.contains('is-hidden')) {
             closeThemePicker();
+            return;
+        }
+        const route = dispatcherRouteKey(event.key);
+        if (route) {
+            if (!event.repeat) setRoute(route);
+            event.preventDefault();
             return;
         }
         const direction = keyDirection(event.key);
@@ -1163,6 +1714,7 @@
     });
 
     window.addEventListener('keyup', (event) => {
+        if (event.key === 'Shift') game.boosting = false;
         const direction = keyDirection(event.key);
         if (direction) keys.delete(direction);
     });
@@ -1170,6 +1722,7 @@
     window.addEventListener('blur', () => {
         keys.clear();
         touchKeys.clear();
+        game.boosting = false;
         if (game.running && !game.paused) togglePause(true);
     });
 
@@ -1192,7 +1745,24 @@
     });
 
     elements.startButton.addEventListener('click', startGame);
-    elements.restartButton.addEventListener('click', startGame);
+    elements.modeButtons.forEach((button) => {
+        button.addEventListener('click', () => chooseMode(button.dataset.mode));
+    });
+    elements.missionSelect.addEventListener('change', updateMissionBrief);
+    elements.routeButtons.forEach((button) => {
+        button.addEventListener('click', () => setRoute(button.dataset.route));
+    });
+    elements.swapRolesButton.addEventListener('click', swapRoles);
+    elements.restartButton.addEventListener('click', () => {
+        if (game.mode === 'career' && game.careerCompleted) {
+            game.careerCompleted = false;
+            elements.over.classList.add('is-hidden');
+            elements.start.classList.remove('is-hidden');
+            chooseMode('career');
+        } else {
+            startGame();
+        }
+    });
     elements.resumeButton.addEventListener('click', () => togglePause(false));
     elements.pauseButton.addEventListener('click', () => togglePause());
     elements.soundButton.addEventListener('click', () => setSound(!game.soundOn));
@@ -1210,6 +1780,7 @@
         });
     });
     setSound(game.soundOn);
+    loadCareerProgress();
     applyTheme(game.theme);
     updateHud();
 

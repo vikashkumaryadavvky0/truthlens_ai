@@ -40,6 +40,20 @@ Every journey begins in clear weather. Conditions shift dynamically as you trave
 
 The weather badge and message below the canvas identify current conditions and their driving effect. In poor conditions, release the movement key early or steer against your momentum to brake; stopping distance is longer on wet and snowy rails.
 
+## Dispatcher Crew (local co-op)
+
+Choose **Dispatcher Crew** on the start screen to play together on one device. This is local same-screen co-op, not online matchmaking:
+
+- **Player 1 drives** with **WASD**; **Player 2 dispatches** with **Left / Right** to set the arriving train's route to Track A or B. The signal desk also has clickable route buttons.
+- Watch the approaching train's destination and set the matching signal before it reaches the junction. A correct route earns 100 points; a wrong or late signal costs one engine-health heart.
+- Avoid dispatched traffic as well as rocks and trees. A collision between trains costs a heart.
+- Use **Swap roles** at any time to give the driver the arrow keys and the dispatcher **A / D**. The signal desk and key hints update to match.
+- Pause, weather effects, themes, and the usual restart flow continue to work in this mode.
+
+## Career and Story missions
+
+Choose **Career & Story** to take on a three-mission solo campaign. Each mission sets a point target, a minimum number of hazards to clear safely, a countdown timetable, and a strict speed limit. The mission panel shows the remaining time, current speed, speed cap, and progress toward both objectives. Steer with **WASD or the arrow keys**; hold **Shift** for a faster burst, but exceeding the posted limit forfeits the achievement. Reach the destination on time, clear the required hazards, keep all three hearts, and stay within the limit to earn the mission achievement and unlock the next chapter. Unlocked chapters and achievements are saved in the browser.
+
 ## Features
 
 - Responsive canvas art with a scrolling railway, scenery, locomotive, hazards, and effects
@@ -48,6 +62,8 @@ The weather badge and message below the canvas identify current conditions and t
 - Collectible stars, temporary shields, collision protection, score streaks, and route progression
 - Dynamic weather transitions between clear skies, rain, snow, fog, and thunderstorms
 - Weather effects with changing visibility, steering grip, momentum, braking distance, storm gusts, and lightning
+- Local co-op Dispatcher Crew mode with scheduled traffic, route signals, role swapping, and train-conflict hazards
+- Three structured Career & Story missions with timetables, safe-hazard objectives, strict speed limits, achievements, and saved chapter unlocks
 - Optional synthesized sound effects
 - Locally saved best score and sound preference
 - Reduced-motion styling and accessible control labels
