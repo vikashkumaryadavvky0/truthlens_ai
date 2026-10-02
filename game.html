@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#091526">
+    <meta name="description" content="Drive a cheerful little train, dodge hazards, collect gems, and beat your high score.">
+    <title>Little Locomotive | A tiny train adventure</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <main class="game-shell">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="Little Locomotive home">
+                <span class="brand-icon" aria-hidden="true">🚂</span>
+                <span><strong>Little Locomotive</strong><small>THE GREAT RAIL ESCAPE</small></span>
+            </a>
+            <div class="top-actions">
+                <button class="icon-button" id="soundButton" type="button" aria-label="Turn sound off" title="Toggle sound">
+                    <span id="soundIcon" aria-hidden="true">♫</span><span class="button-label">Sound on</span>
+                </button>
+                <button class="icon-button theme-button" id="themeButton" type="button" aria-haspopup="dialog" aria-controls="themeScreen" title="Choose a game theme">
+                    <span id="themeIcon" aria-hidden="true">🌿</span><span class="button-label" id="themeButtonLabel">Meadow</span>
+                </button>
+                <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game" title="Pause (P or Space)" disabled>
+                    <span id="pauseIcon" aria-hidden="true">Ⅱ</span><span class="button-label">Pause</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="intro">
+            <div>
+                <p class="eyebrow">ALL ABOARD, ADVENTURER</p>
+                <h1>Keep the good times <span>rolling.</span></h1>
+                <p class="intro-copy">Dodge the rocky track, scoop up shiny stars, and see how far your little engine can go.</p>
+                <p class="theme-selection-label">YOUR WORLD: <strong id="selectedThemeName">Sunny Meadow</strong> <span id="selectedThemeDescription">Wildflowers, rolling hills, and fresh green tracks.</span></p>
+            </div>
+            <div class="best-card" aria-label="Personal best">
+                <span class="best-star" aria-hidden="true">✦</span>
+                <span><small>YOUR BEST</small><strong id="bestScore">00000</strong></span>
+            </div>
+        </section>
+
+        <section class="game-card" aria-label="Train game">
+            <div class="game-hud">
+                <div class="hud-block score-block"><span class="hud-label">DISTANCE</span><strong id="score">00000</strong></div>
+                <div class="hud-center"><div class="hud-pills"><span class="level-pill" id="level">ROUTE 01</span><span class="weather-pill" id="weatherBadge" aria-live="polite"><span id="weatherIcon" aria-hidden="true">☀</span><span id="weatherName">Clear skies</span></span></div><span class="hud-message" id="statusMessage">Ready when you are!</span></div>
+                <div class="hud-block lives-block"><span class="hud-label">ENGINE HEALTH</span><span id="lives" class="hearts" aria-label="3 lives">♥ ♥ ♥</span></div>
+            </div>
+            <div class="canvas-wrap">
+                <canvas id="gameCanvas" width="960" height="600" aria-label="Game scene. Steer the train to avoid obstacles and collect stars." role="img">
+                    Your browser does not support the HTML canvas. Use a recent version of Chrome, Firefox, Safari, or Edge.
+                </canvas>
+                <div class="canvas-vignette" aria-hidden="true"></div>
+                <div id="toast" class="toast" role="status" aria-live="polite"></div>
+                <div id="startScreen" class="game-overlay">
+                    <div class="overlay-card start-card">
+                        <span class="hero-train" aria-hidden="true">🚂</span>
+                        <p class="eyebrow">A POCKET-SIZED ADVENTURE</p>
+                        <h2>Ready to roll?</h2>
+                        <p>Keep your wheels on the track, grab the golden stars, and watch out for rocks. Conditions can change while you ride!</p>
+                        <div class="quick-controls">
+                            <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><small>or arrow keys</small></span>
+                            <i aria-hidden="true">✦</i>
+                            <span class="quick-shield">✧<small>Power-ups give you a shield</small></span>
+                        </div>
+                        <div class="mode-select" role="group" aria-label="Choose a game mode">
+                            <button type="button" class="mode-option is-selected" data-mode="solo" aria-pressed="true"><strong>Solo Run</strong><small>One conductor, one train</small></button>
+                            <button type="button" class="mode-option" data-mode="crew" aria-pressed="false"><strong>Dispatcher Crew</strong><small>Drive + route scheduled trains</small></button>
+                            <button type="button" class="mode-option" data-mode="career" aria-pressed="false"><strong>Career &amp; Story</strong><small>Timetables, speed limits, achievements</small></button>
+                        </div>
+                        <div id="careerPicker" class="career-picker is-hidden">
+                            <label for="missionSelect">STORY MISSION <span id="missionUnlockCount">1 / 3 unlocked</span></label>
+                            <select id="missionSelect"></select>
+                            <p id="missionBrief"></p>
+                        </div>
+                        <button class="choose-theme-link" id="chooseThemeButton" type="button"><span aria-hidden="true">🎨</span> Choose your world <span aria-hidden="true">→</span></button>
+                        <button class="primary-button" id="startButton" type="button">Start your journey <span aria-hidden="true">→</span></button>
+                        <small class="start-note" id="modeInstructions">No rush. Press P or Space to pause any time.</small>
+                    </div>
+                </div>
+                <div id="pauseScreen" class="game-overlay is-hidden">
+                    <div class="overlay-card compact-card">
+                        <span class="overlay-symbol" aria-hidden="true">Ⅱ</span>
+                        <p class="eyebrow">TAKE YOUR TIME</p>
+                        <h2>Journey paused</h2>
+                        <p>Your train isn't going anywhere.</p>
+                        <button class="primary-button" id="resumeButton" type="button">Back on track <span aria-hidden="true">→</span></button>
+                    </div>
+                </div>
+                <div id="gameOverScreen" class="game-overlay is-hidden">
+                    <div class="overlay-card compact-card">
+                        <span class="overlay-symbol" aria-hidden="true">✦</span>
+                        <p class="eyebrow">WHAT A RIDE</p>
+                        <h2 id="resultHeading">Journey complete!</h2>
+                        <p class="final-distance">You travelled <strong id="finalScore">0</strong> points</p>
+                        <p id="careerResult" class="career-result is-hidden"></p>
+                        <div class="result-stats">
+                            <span><small id="resultFirstLabel">STARS COLLECTED</small><strong id="starsCollected">0</strong></span>
+                            <span><small id="resultSecondLabel">BEST STREAK</small><strong id="maxStreak">0</strong></span>
+                        </div>
+                        <button class="primary-button" id="restartButton" type="button">Ride again <span aria-hidden="true">↻</span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="game-bottom">
+                <div class="legend"><span><i class="legend-rock" aria-hidden="true"></i> Rock</span><span><i class="legend-star" aria-hidden="true">✦</i> Star + shield</span></div>
+                <p id="weatherEffect">Clear skies: the rails are dry and easy to handle.</p>
+            </div>
+        </section>
+
+        <div class="below-game">
+            <div class="tip"><span class="tip-icon" aria-hidden="true">✧</span><p><strong>Little tip</strong><br>Stars give you a short shield, so grab one before the track gets busy.</p></div>
+            <section id="dispatcherConsole" class="dispatcher-console is-hidden" aria-label="Dispatcher signal console">
+                <div class="dispatcher-heading"><span><strong>Signal desk</strong><small id="dispatcherAssignment">Driver: Player 1 · Dispatcher: Player 2</small></span><button id="swapRolesButton" type="button" class="swap-button" title="Swap player roles">⇄ Swap roles</button></div>
+                <div class="dispatch-request" aria-live="polite"><span class="request-icon" aria-hidden="true">🚦</span><span><small id="requestLabel">NEXT ARRIVAL</small><strong id="dispatchMessage">Waiting for a scheduled train…</strong></span><span id="dispatchTimer" class="dispatch-timer">--</span></div>
+                <div class="signal-buttons" role="group" aria-label="Route an arriving train">
+                    <button class="signal-button" id="routeLeftButton" data-route="left" type="button" aria-pressed="false"><span class="signal-lamp" aria-hidden="true"></span><strong>Track A</strong><small id="trackALabel">Left branch</small><kbd id="trackAKey">←</kbd></button>
+                    <button class="signal-button" id="routeRightButton" data-route="right" type="button" aria-pressed="false"><span class="signal-lamp" aria-hidden="true"></span><strong>Track B</strong><small id="trackBLabel">Right branch</small><kbd id="trackBKey">→</kbd></button>
+                </div>
+                <p class="dispatcher-tip">Dispatcher: route before the train reaches the junction. Driver: dodge hazards as usual.</p>
+            </section>
+            <section id="careerConsole" class="career-console is-hidden" aria-label="Career mission progress">
+                <div class="career-heading"><span><strong id="careerMissionTitle">Mission</strong><small id="careerMissionObjective">Reach the destination on schedule.</small></span><span class="career-clock"><small>TIMETABLE</small><strong id="careerTimer">00:00</strong></span></div>
+                <div class="career-meters">
+                    <div><span>SPEED</span><strong id="careerSpeed">0 mph</strong></div>
+                    <div><span>STRICT LIMIT</span><strong id="careerSpeedLimit">50 mph</strong></div>
+                    <div><span>ARRIVAL TARGET</span><strong id="careerTarget">00000</strong></div>
+                </div>
+                <div class="career-progress"><span id="careerProgress"></span></div>
+                <p id="careerAchievement" class="career-achievement">Achievement: arrive on time and meet the mission brief.</p>
+            </section>
+            <div class="touch-controls" aria-label="Touch movement controls">
+                <button type="button" data-direction="up" aria-label="Move up">↑</button>
+                <button type="button" data-direction="left" aria-label="Move left">←</button>
+                <button type="button" data-direction="down" aria-label="Move down">↓</button>
+                <button type="button" data-direction="right" aria-label="Move right">→</button>
+                <span>TOUCH TO STEER</span>
+            </div>
+        </div>
+        <footer class="page-footer">Made for curious conductors <span aria-hidden="true">♥</span> Keyboard and touch controls supported</footer>
+    </main>
+    <div id="themeScreen" class="theme-screen is-hidden">
+        <section class="theme-dialog" role="dialog" aria-modal="true" aria-labelledby="themeHeading">
+            <button class="theme-close" id="closeThemeButton" type="button" aria-label="Close theme picker">×</button>
+            <p class="eyebrow">MAKE THIS RIDE YOURS</p>
+            <h2 id="themeHeading">Choose your world</h2>
+            <p class="theme-intro">Pick a favorite. The train, track, and scenery all change with it.</p>
+            <div class="theme-options" role="group" aria-label="Game themes">
+                <button class="theme-option" type="button" data-theme-choice="meadow" aria-pressed="true">
+                    <span class="theme-art meadow-art" aria-hidden="true"><i>☀</i><b></b><em></em></span>
+                    <span class="theme-option-name">Sunny Meadow</span><span class="theme-option-copy">Wildflower country</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="winter" aria-pressed="false">
+                    <span class="theme-art winter-art" aria-hidden="true"><i>❄</i><b></b><em></em></span>
+                    <span class="theme-option-name">Frosty Peaks</span><span class="theme-option-copy">A snowy mountain run</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="sunset" aria-pressed="false">
+                    <span class="theme-art sunset-art" aria-hidden="true"><i>☼</i><b></b><em></em></span>
+                    <span class="theme-option-name">Golden Sunset</span><span class="theme-option-copy">Warm desert skies</span>
+                </button>
+                <button class="theme-option" type="button" data-theme-choice="neon" aria-pressed="false">
+                    <span class="theme-art neon-art" aria-hidden="true"><i>✦</i><b></b><em></em></span>
+                    <span class="theme-option-name">Neon Night</span><span class="theme-option-copy">Electric after-dark rails</span>
+                </button>
+            </div>
+            <p class="theme-saved-note"><span aria-hidden="true">✓</span> Your choice is saved for next time</p>
+        </section>
+    </div>
+</body>
+</html>
