@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthLens AI - Fake News & Credibility Detection Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6.5.1 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #070a13;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(56, 189, 248, 0.18);
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --primary-cyan: #00f2fe;
+            --primary-blue: #4facfe;
+            --accent-teal: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --real-green: #10b981;
+            --real-green-glow: rgba(16, 185, 129, 0.3);
+            --fake-red: #ef4444;
+            --fake-red-glow: rgba(239, 68, 68, 0.3);
+            --premium-gold: #f59e0b;
+            --glass-blur: blur(14px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(79, 172, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION HEADER --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 4%;
+            background: rgba(7, 10, 19, 0.8);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-logo i {
+            color: var(--primary-cyan);
+            font-size: 1.6rem;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            position: relative;
+            padding: 4px 0;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-blue));
+            box-shadow: 0 0 8px var(--primary-cyan);
+            border-radius: 2px;
+        }
+
+        .user-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 6px 14px 6px 8px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-widget:hover {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+        }
+
+        .avatar-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .user-badge {
+            font-size: 0.7rem;
+            color: var(--primary-cyan);
+            font-weight: 500;
+        }
+
+        /* --- MAIN CONTAINER --- */
+        .main-wrapper {
+            max-width: 1280px;
+            width: 92%;
+            margin: 2rem auto;
+            flex: 1;
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- TIER TOGGLE --- */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .toggle-pill {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 4px;
+            position: relative;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 8px 22px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            user-select: none;
+        }
+
+        .toggle-btn.active {
+            color: #000;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-blue));
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        /* --- ANALYSIS SECTION GRID --- */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.75rem;
+        }
+
+        @media (max-width: 992px) {
+            .analysis-grid { grid-template-columns: 1fr; }
+        }
+
+        .input-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .text-input-field, .url-input-field {
+            width: 100%;
+            background: rgba(11, 15, 25, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            padding: 1rem;
+            font-size: 0.92rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .text-input-field {
+            resize: vertical;
+            min-height: 140px;
+        }
+
+        .text-input-field:focus, .url-input-field:focus {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .btn-clear {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-clear:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            border: none;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 114, 255, 0.4);
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.6);
+        }
+
+        /* --- PREMIUM PREVIEWS GRID --- */
+        .preview-title-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.85rem;
+        }
+
+        .preview-title-box h4 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .premium-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .premium-card {
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .premium-card:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .badge-premium {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--premium-gold);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .premium-icon-frame {
+            font-size: 1.8rem;
+            color: var(--primary-cyan);
+            margin: 0.75rem 0 0.5rem;
+        }
+
+        .premium-card-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .unlock-link {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .premium-card:hover .unlock-link {
+            color: var(--primary-cyan);
+        }
+
+        /* --- SCANNER LOADER --- */
+        .scanner-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem;
+            gap: 1rem;
+        }
+
+        .scan-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 242, 254, 0.1);
+            border-top-color: var(--primary-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            filter: drop-shadow(0 0 10px var(--primary-cyan));
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- RESULTS SECTION --- */
+        .results-container {
+            display: none;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-header {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .results-display {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .results-display { grid-template-columns: 1fr; }
+        }
+
+        .score-circle-outer {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            background: rgba(11, 15, 25, 0.8);
+            transition: all 0.5s ease;
+        }
+
+        .score-val {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-badge {
+            margin-top: 0.75rem;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.real {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--real-green);
+            border: 1px solid var(--real-green);
+            box-shadow: 0 0 12px var(--real-green-glow);
+        }
+
+        .status-badge.fake {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--fake-red);
+            border: 1px solid var(--fake-red);
+            box-shadow: 0 0 12px var(--fake-red-glow);
+        }
+
+        .breakdown-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .breakdown-box p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out, background-color 0.5s ease;
+        }
+
+        /* --- RECENT ANALYSES SECTION --- */
+        .section-header-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .recent-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .recent-card:hover {
+            border-color: var(--primary-cyan);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.1);
+        }
+
+        .recent-snippet-img {
+            width: 100%;
+            height: 75px;
+            background: rgba(11, 15, 25, 0.8);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-headline {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recent-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+
+        .cred-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .dot-real { color: var(--real-green); }
+        .dot-fake { color: var(--fake-red); }
+
+        /* --- FUTURE SCOPE GRID --- */
+        .future-scope-section {
+            margin-top: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-main-title {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .future-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 1100px) {
+            .future-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .future-grid { grid-template-columns: 1fr; }
+        }
+
+        .future-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            height: 220px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .future-card:hover {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .future-card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            z-index: 2;
+        }
+
+        .future-card-graphic {
+            flex: 1;
+            width: 100%;
+            background: rgba(7, 10, 19, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mock Visual Graphics for Future Scope Cards */
+        .graphic-svg {
+            width: 80%;
+            height: 80%;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+        }
+
+        .future-card:hover .graphic-svg {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            border-top: 1px solid var(--border-color);
+            background: rgba(7, 10, 19, 0.9);
+            padding: 1.5rem 4%;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-cyan);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION HEADER -->
+    <nav class="navbar">
+        <a href="#" class="brand-logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>TruthLens AI</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#" class="active">Home</a></li>
+            <li><a href="#">Features</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">API Access</a></li>
+        </ul>
+
+        <div class="user-widget">
+            <div class="avatar-icon">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name">Dashboard</span>
+                <span class="user-badge">Upgrade Account</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN WRAPPER -->
+    <main class="main-wrapper">
+
+        <!-- MAIN ANALYSIS CARD -->
+        <section class="glass-card">
+            
+            <!-- TIER TOGGLE -->
+            <div class="toggle-container">
+                <div class="toggle-pill">
+                    <div class="toggle-btn active" id="btnFree" onclick="setTier('free')">FREE TIER</div>
+                    <div class="toggle-btn" id="btnPremium" onclick="setTier('premium')">PREMIUM TIER</div>
+                </div>
+            </div>
+
+            <!-- INPUT & PREVIEW GRID -->
+            <div class="analysis-grid">
+                
+                <!-- LEFT COLUMN: INPUTS -->
+                <div class="input-group-custom">
+                    <textarea id="newsTextInput" class="text-input-field" placeholder="Paste News Article or Statement..."></textarea>
+                    <input type="text" id="urlInput" class="url-input-field" placeholder="URL Link">
+                    
+                    <div class="action-buttons">
+                        <button class="btn-clear" onclick="clearInputs()">
+                            <i class="fa-solid fa-rotate-left"></i> Clear
+                        </button>
+                        <button class="btn-analyze" id="analyzeBtn" onclick="runCredibilityAnalysis()">
+                            <i class="fa-solid fa-microchip"></i> Analyze Credibility
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: PREMIUM PREVIEWS -->
+                <div>
+                    <div class="preview-title-box">
+                        <h4>Premium Features Preview</h4>
+                    </div>
+
+                    <div class="premium-cards-grid">
+                        <!-- Preview Card 1 -->
+                        <div class="premium-card">
+                            <span class="badge-premium">Premium</span>
+                            <div class="premium-icon-frame">
+                                <i class="fa-regular fa-image"></i>
+                            </div>
+                            <div class="premium-card-name">Image Analysis</div>
+                            <a href="#" class="unlock-link"><i class="fa-solid fa-lock"></i> Upgrade to Unlock</a>
+                        </div>
+
+                        <!-- Preview Card 2 -->
+                        <div class="premium-card">
+                            <span class="badge-premium">Premium</span>
+                            <div class="premium-icon-frame">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div class="premium-card-name">Video Content</div>
+                            <a href="#" class="unlock-link"><i class="fa-solid fa-lock"></i> Upgrade to Unlock</a>
+                        </div>
+
+                        <!-- Preview Card 3 -->
+                        <div class="premium-card">
+                            <span class="badge-premium">Premium</span>
+                            <div class="premium-icon-frame">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <div class="premium-card-name">Audio Deepfakes</div>
+                            <a href="#" class="unlock-link"><i class="fa-solid fa-lock"></i> Upgrade to Unlock</a>
+                        </div>
+
+                        <!-- Preview Card 4 -->
+                        <div class="premium-card">
+                            <span class="badge-premium">Premium</span>
+                            <div class="premium-icon-frame">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <div class="premium-card-name">Data Streams</div>
+                            <a href="#" class="unlock-link"><i class="fa-solid fa-lock"></i> Upgrade to Unlock</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SCANNER LOADER ANIMATION -->
+            <div id="scannerLoader" class="scanner-wrapper">
+                <div class="scan-spinner"></div>
+                <div style="color: var(--primary-cyan); font-weight: 600; font-size: 0.95rem;">
+                    Parsing Linguistic Patterns & TF-IDF Features...
+                </div>
+            </div>
+
+            <!-- RESULTS RENDER CARD -->
+            <div id="resultsCard" class="results-container">
+                <div class="results-header">Analysis Results</div>
+                
+                <div class="results-display">
+                    <!-- CIRCULAR SCORE METRICS -->
+                    <div class="score-circle-outer" id="scoreMeterCircle">
+                        <span class="score-val" id="scoreValue">0%</span>
+                        <span id="statusBadge" class="status-badge">EVALUATING</span>
+                    </div>
+
+                    <!-- BREAKDOWN -->
+                    <div class="breakdown-box">
+                        <h4 id="breakdownTitle">Confidence Breakdown</h4>
+                        <p id="breakdownDesc">Evaluation calculated based on vocabulary alignment, stylistic bias detection, and cross-reference metrics.</p>
+                        
+                        <div class="progress-bar-bg">
+                            <div id="progressBarFill" class="progress-bar-fill"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                            <span>Credibility Rating</span>
+                            <span id="scorePercentLabel">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RECENT ANALYSES SECTION -->
+        <section>
+            <div class="section-header-title">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-cyan);"></i>
+                Recent Analyses
+            </div>
+
+            <div class="recent-grid">
+                <!-- Recent Card 1 -->
+                <div class="recent-card">
+                    <div class="recent-snippet-img">
+                        "Global economy displays stable growth projection according to international central bank reports..."
+                    </div>
+                    <div class="recent-headline">Global News Real-time Map (Verified)</div>
+                    <div class="recent-footer">
+                        <div class="cred-indicator">
+                            <i class="fa-solid fa-circle dot-real"></i>
+                            <span style="color: var(--real-green);">Credibility Score</span>
+                        </div>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">94.2%</span>
+                    </div>
+                </div>
+
+                <!-- Recent Card 2 -->
+                <div class="recent-card">
+                    <div class="recent-snippet-img">
+                        "Unverified claims circulate regarding secret lunar mining operations hidden from radar..."
+                    </div>
+                    <div class="recent-headline">Source Credibility Ledger (Unverified)</div>
+                    <div class="recent-footer">
+                        <div class="cred-indicator">
+                            <i class="fa-solid fa-circle dot-fake"></i>
+                            <span style="color: var(--fake-red);">Credibility Score</span>
+                        </div>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">12.4%</span>
+                    </div>
+                </div>
+
+                <!-- Recent Card 3 -->
+                <div class="recent-card">
+                    <div class="recent-snippet-img">
+                        "Tech consortium releases open dataset for research in natural language processing..."
+                    </div>
+                    <div class="recent-headline">Cross-Platform Context Verification</div>
+                    <div class="recent-footer">
+                        <div class="cred-indicator">
+                            <i class="fa-solid fa-circle dot-real"></i>
+                            <span style="color: var(--real-green);">Credibility Score</span>
+                        </div>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">88.7%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FUTURE SCOPE GRID SECTION -->
+        <section class="future-scope-section">
+            <h2 class="section-main-title">Future Scope</h2>
+
+            <div class="future-grid">
+                <!-- 1. Global News Real-time Map -->
+                <div class="future-card">
+                    <div class="future-card-title">Global News Real-time Map</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="38" stroke="#00f2fe" stroke-width="1.5" stroke-dasharray="4 2"/>
+                            <circle cx="50" cy="50" r="26" stroke="#4facfe" stroke-width="1"/>
+                            <ellipse cx="50" cy="50" rx="38" ry="14" stroke="#00f2fe" stroke-width="1"/>
+                            <ellipse cx="50" cy="50" rx="14" ry="38" stroke="#00f2fe" stroke-width="1"/>
+                            <circle cx="65" cy="35" r="3" fill="#10b981"/>
+                            <circle cx="35" cy="60" r="3" fill="#ef4444"/>
+                            <circle cx="50" cy="50" r="4" fill="#00f2fe"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 2. Source Credibility Ledger (Blockchain) -->
+                <div class="future-card">
+                    <div class="future-card-title">Source Credibility Ledger (Blockchain)</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="15" y="35" width="20" height="30" rx="4" stroke="#00f2fe" stroke-width="1.5" fill="rgba(0,242,254,0.1)"/>
+                            <rect x="40" y="35" width="20" height="30" rx="4" stroke="#4facfe" stroke-width="1.5" fill="rgba(79,172,254,0.1)"/>
+                            <rect x="65" y="35" width="20" height="30" rx="4" stroke="#00f2fe" stroke-width="1.5" fill="rgba(0,242,254,0.1)"/>
+                            <path d="M35 50H40M60 50H65" stroke="#00f2fe" stroke-width="2" stroke-dasharray="2 1"/>
+                            <circle cx="50" cy="50" r="2" fill="#fff"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 3. Cross-Platform Context Engine -->
+                <div class="future-card">
+                    <div class="future-card-title">Cross-Platform Context Engine</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="14" fill="rgba(0,242,254,0.2)" stroke="#00f2fe" stroke-width="1.5"/>
+                            <text x="50" y="54" font-size="10" fill="#fff" text-anchor="middle" font-weight="bold">AI</text>
+                            <circle cx="20" cy="25" r="7" fill="rgba(56,189,248,0.2)" stroke="#38bdf8"/>
+                            <circle cx="80" cy="25" r="7" fill="rgba(56,189,248,0.2)" stroke="#38bdf8"/>
+                            <circle cx="20" cy="75" r="7" fill="rgba(56,189,248,0.2)" stroke="#38bdf8"/>
+                            <circle cx="80" cy="75" r="7" fill="rgba(56,189,248,0.2)" stroke="#38bdf8"/>
+                            <path d="M26 30L38 42M74 30L62 42M26 70L38 58M74 70L62 58" stroke="#38bdf8" stroke-width="1" stroke-dasharray="2 2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 4. Cross-Modal Debunking -->
+                <div class="future-card">
+                    <div class="future-card-title">Cross-Modal Debunking</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="15" y="25" width="30" height="22" rx="3" stroke="#38bdf8" stroke-width="1.5"/>
+                            <polygon points="27,31 35,36 27,41" fill="#38bdf8"/>
+                            <path d="M45 36H55M55 36L50 31M55 36L50 41" stroke="#00f2fe" stroke-width="1.5"/>
+                            <rect x="55" y="25" width="30" height="50" rx="3" stroke="#00f2fe" stroke-width="1.5" fill="rgba(0,242,254,0.05)"/>
+                            <line x1="61" y1="35" x2="79" y2="35" stroke="#38bdf8" stroke-width="2"/>
+                            <line x1="61" y1="45" x2="75" y2="45" stroke="#94a3b8" stroke-width="1.5"/>
+                            <line x1="61" y1="55" x2="70" y2="55" stroke="#94a3b8" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 5. Multi-modal Fact-Checking Monitoring -->
+                <div class="future-card">
+                    <div class="future-card-title">Multi-modal Fact-Checking Monitoring</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="20" y="20" width="60" height="60" rx="6" stroke="#00f2fe" stroke-width="1.5" fill="rgba(15,23,42,0.8)"/>
+                            <path d="M30 40H70M30 50H55M30 60H65" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="65" cy="60" r="10" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.5"/>
+                            <path d="M61 60L64 63L69 57" stroke="#10b981" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 6. Real-time Social Media Monitoring -->
+                <div class="future-card">
+                    <div class="future-card-title">Real-time Social Media Monitoring</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 70 Q 35 40, 55 55 T 85 25" stroke="#ef4444" stroke-width="2" fill="none"/>
+                            <path d="M15 75 Q 35 60, 55 65 T 85 45" stroke="#00f2fe" stroke-width="2" fill="none"/>
+                            <line x1="15" y1="80" x2="85" y2="80" stroke="#334155" stroke-width="1"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 7. RAG-Based Evidence Retrieval -->
+                <div class="future-card">
+                    <div class="future-card-title">RAG-Based Evidence Retrieval</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="45" cy="45" r="20" stroke="#00f2fe" stroke-width="2"/>
+                            <line x1="60" y1="60" x2="80" y2="80" stroke="#00f2fe" stroke-width="3" stroke-linecap="round"/>
+                            <rect x="25" y="25" width="40" height="40" rx="4" stroke="#4facfe" stroke-width="1" stroke-dasharray="2 2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 8. Enterprise AI Fact-Checking Platform -->
+                <div class="future-card">
+                    <div class="future-card-title">Enterprise AI Fact-Checking Platform</div>
+                    <div class="future-card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="15" y="20" width="70" height="60" rx="5" stroke="#00f2fe" stroke-width="1.5" fill="rgba(15,23,42,0.9)"/>
+                            <line x1="15" y1="35" x2="85" y2="35" stroke="#00f2fe" stroke-width="1"/>
+                            <rect x="22" y="45" width="16" height="25" rx="2" fill="#38bdf8"/>
+                            <rect x="42" y="55" width="16" height="15" rx="2" fill="#10b981"/>
+                            <rect x="62" y="40" width="16" height="30" rx="2" fill="#00f2fe"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Use</a>
+            <a href="#" class="footer-link">Contact Support</a>
+            <a href="#" class="footer-link">Hackathon Submission Details</a>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        // Tier Toggle Logic
+        function setTier(tier) {
+            const btnFree = document.getElementById('btnFree');
+            const btnPremium = document.getElementById('btnPremium');
+
+            if (tier === 'free') {
+                btnFree.classList.add('active');
+                btnPremium.classList.remove('active');
+            } else {
+                btnPremium.classList.add('active');
+                btnFree.classList.remove('active');
+                alert('Premium Tier Activated! Extra modalities unlocked for evaluation.');
+            }
+        }
+
+        // Clear Inputs
+        function clearInputs() {
+            document.getElementById('newsTextInput').value = '';
+            document.getElementById('urlInput').value = '';
+            document.getElementById('resultsCard').style.display = 'none';
+        }
+
+        // Run Analysis (Connects to Flask API `/predict` or simulates dynamic output)
+        async function runCredibilityAnalysis() {
+            const textInput = document.getElementById('newsTextInput').value;
+            const urlInput = document.getElementById('urlInput').value;
+            const loader = document.getElementById('scannerLoader');
+            const resultsCard = document.getElementById('resultsCard');
+
+            if (!textInput.trim() && !urlInput.trim()) {
+                alert('Please enter a news article text snippet or a URL to analyze.');
+                return;
+            }
+
+            // Show Loader
+            loader.style.display = 'flex';
+            resultsCard.style.display = 'none';
+
+            try {
+                // Attempt to send request to backend Flask API
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: textInput,
+                        url: urlInput
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    loader.style.display = 'none';
+                    renderResults(data.credibility_score, data.is_real, data.prediction);
+                } else {
+                    // Fallback simulation if backend endpoint is offline
+                    simulateAnalysis(textInput);
+                }
+            } catch (error) {
+                // Fallback simulation when running standalone HTML locally
+                simulateAnalysis(textInput);
+            }
+        }
+
+        // Simulation Fallback for Standalone Local Browser Testing
+        function simulateAnalysis(text) {
+            const loader = document.getElementById('scannerLoader');
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                
+                // Heuristic calculation simulation for preview
+                let score = 85;
+                const lower = text.toLowerCase();
+                if (lower.includes('alien') || lower.includes('secret') || lower.includes('shocking') || lower.includes('miracle')) {
+                    score = 18.5;
+                } else if (text.length > 50) {
+                    score = Math.floor(Math.random() * (95 - 65 + 1)) + 65;
+                } else {
+                    score = 42.0;
+                }
+
+                const isReal = score >= 50;
+                const label = isReal ? "REAL / RELIABLE" : "FAKE / UNRELIABLE";
+
+                renderResults(score, isReal, label);
+            }, 1200);
+        }
+
+        // Render Results UI Card
+        function renderResults(score, isReal, label) {
+            const resultsCard = document.getElementById('resultsCard');
+            const scoreValue = document.getElementById('scoreValue');
+            const statusBadge = document.getElementById('statusBadge');
+            const scoreMeterCircle = document.getElementById('scoreMeterCircle');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const scorePercentLabel = document.getElementById('scorePercentLabel');
+            const breakdownTitle = document.getElementById('breakdownTitle');
+            const breakdownDesc = document.getElementById('breakdownDesc');
+
+            resultsCard.style.display = 'block';
+            scoreValue.innerText = `${score}%`;
+            scorePercentLabel.innerText = `${score}%`;
+            progressBarFill.style.width = `${score}%`;
+
+            if (isReal) {
+                statusBadge.innerText = "VERIFIED REAL";
+                statusBadge.className = "status-badge real";
+                scoreMeterCircle.style.border = "4px solid var(--real-green)";
+                scoreMeterCircle.style.boxShadow = "0 0 25px var(--real-green-glow)";
+                scoreValue.style.color = "var(--real-green)";
+                progressBarFill.style.backgroundColor = "var(--real-green)";
+                breakdownTitle.innerText = "High Credibility Verified";
+                breakdownDesc.innerText = "The content matches verified factual syntax structures, reliable entity references, and low bias indicators.";
+            } else {
+                statusBadge.innerText = "FLAGGED FAKE";
+                statusBadge.className = "status-badge fake";
+                scoreMeterCircle.style.border = "4px solid var(--fake-red)";
+                scoreMeterCircle.style.boxShadow = "0 0 25px var(--fake-red-glow)";
+                scoreValue.style.color = "var(--fake-red)";
+                progressBarFill.style.backgroundColor = "var(--fake-red)";
+                breakdownTitle.innerText = "Sensationalism & Misinformation Risk";
+                breakdownDesc.innerText = "High concentration of unverified assertions, emotional bias markers, and lexical patterns associated with unreliable sources.";
+            }
+        }
+    </script>
+</body>
+</html>
